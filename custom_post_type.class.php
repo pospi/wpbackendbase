@@ -1,11 +1,19 @@
 <?php
 /**
+ * Custom post type helper class
+ *
+ * :TODO:
+ * - add other datatypes to metabox code (number, date, datetime, bool, url, enum (radios) & options (checkgroup), image & file attachments)
+ * - de-globalise $custom_fields
+ *
  * Originally from http://wp.tutsplus.com/tutorials/creative-coding/custom-post-type-helper-class/
  * @author Gijs Jorissen
+ * @author Sam Pospischil <pospi@spadgos.com>
  */
 class Custom_Post_Type
 {
 	public $post_type_name;
+	public $post_type_name_plural;
 	public $post_type_args;
 	public $post_type_labels;
 
@@ -13,7 +21,12 @@ class Custom_Post_Type
 	public function __construct( $name, $args = array(), $labels = array() )
 	{
 		// Set some important variables
-		$this->post_type_name		= strtolower( str_replace( ' ', '_', $name ) );
+		if (is_array($name)) {
+			$this->post_type_name		= strtolower( str_replace( ' ', '_', $name[0] ) );
+			$this->post_type_name_plural = strtolower( str_replace( ' ', '_', $name[1] ) );
+		} else {
+			$this->post_type_name		= strtolower( str_replace( ' ', '_', $name ) );
+		}
 		$this->post_type_args 		= $args;
 		$this->post_type_labels 	= $labels;
 
@@ -31,8 +44,8 @@ class Custom_Post_Type
 	public function register_post_type()
 	{
 		//Capitilize the words and make it plural
-		$name 		= ucwords( str_replace( '_', ' ', $this->post_type_name ) );
-		$plural 	= $name . 's';
+		$name 		= ucfirst( str_replace( '_', ' ', $this->post_type_name ) );
+		$plural 	= ucfirst( str_replace( '_', ' ', isset($this->post_type_name_plural) ? $this->post_type_name_plural : $name . 's') );
 
 		// We set the default labels based on the post type name and plural. We overwrite them with the given labels.
 		$labels = array_merge(
@@ -67,10 +80,17 @@ class Custom_Post_Type
 				'label' 				=> $plural,
 				'labels' 				=> $labels,
 				'public' 				=> true,
+				'publicly_queryable' => true,
+				'query_var'			=> true,
+				'rewrite'			=> true,
 				'show_ui' 				=> true,
 				'supports' 				=> array( 'title', 'editor' ),
+				'show_in_menu'		=> true,
 				'show_in_nav_menus' 	=> true,
+				'menu_position'		=> 15,
 				'_builtin' 				=> false,
+
+				'hierarchical'		=> false,
 			),
 
 			// Given args
@@ -207,7 +227,7 @@ class Custom_Post_Type
 								{
 									$field_id_name 	= strtolower( str_replace( ' ', '_', $data['id'] ) ) . '_' . strtolower( str_replace( ' ', '_', $label ) );
 
-									echo '<label for="' . $field_id_name . '">' . $label . '</label><input type="text" name="custom_meta[' . $field_id_name . ']" id="' . $field_id_name . '" value="' . $meta[$field_id_name][0] . '" />';
+									echo '<label for="' . $field_id_name . '">' . $label . '</label><input type="text" name="custom_meta[' . $field_id_name . ']" id="' . $field_id_name . '" value="' . (isset($meta[$field_id_name][0]) ? $meta[$field_id_name][0] : '') . '" />';
 								}
 							}
 
@@ -235,7 +255,7 @@ class Custom_Post_Type
 				// Deny the wordpress autosave function
 				if( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
 
-				if ( ! wp_verify_nonce( $_POST['custom_post_type'], plugin_basename(__FILE__) ) ) return;
+				if ( isset($_POST['custom_post_type']) && ! wp_verify_nonce( $_POST['custom_post_type'], plugin_basename(__FILE__) ) ) return;
 
 				global $post;
 
