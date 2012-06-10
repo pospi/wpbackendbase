@@ -31,9 +31,15 @@ class Custom_Post_Type
 		$this->post_type_labels 	= $labels;
 
 		// Add action to register the post type, if the post type doesnt exist
-		if( ! post_type_exists( $this->post_type_name ) )
-		{
-			add_action( 'init', array( &$this, 'register_post_type' ) );
+		if (function_exists('post_type_exists')) {
+			if( ! post_type_exists( $this->post_type_name ) )
+			{
+				add_action( 'init', array( &$this, 'register_post_type' ) );
+			}
+		} else {
+			if (!WP_Core::post_type_exists( $this->post_type_name ) ) {
+				$this->register_post_type();
+			}
 		}
 
 		// Listen for the save post hook
@@ -52,17 +58,17 @@ class Custom_Post_Type
 
 			// Default
 			array(
-				'name' 					=> _x( $plural, 'post type general name' ),
-				'singular_name' 		=> _x( $name, 'post type singular name' ),
-				'add_new' 				=> _x( 'Add New', strtolower( $name ) ),
-				'add_new_item' 			=> __( 'Add New ' . $name ),
-				'edit_item' 			=> __( 'Edit ' . $name ),
-				'new_item' 				=> __( 'New ' . $name ),
-				'all_items' 			=> __( 'All ' . $plural ),
-				'view_item' 			=> __( 'View ' . $name ),
-				'search_items' 			=> __( 'Search ' . $plural ),
-				'not_found' 			=> __( 'No ' . strtolower( $plural ) . ' found'),
-				'not_found_in_trash' 	=> __( 'No ' . strtolower( $plural ) . ' found in Trash'),
+				'name' 					=> function_exists('_x') ? _x( $plural, 'post type general name' ) : WP_Core::_x( $plural, 'post type general name' ),
+				'singular_name' 		=> function_exists('_x') ? _x( $name, 'post type singular name' ) : WP_Core::_x( $name, 'post type singular name' ),
+				'add_new' 				=> function_exists('_x') ? _x( 'Add New', strtolower( $name ) ) : WP_Core::_x( 'Add New', strtolower( $name ) ),
+				'add_new_item' 			=> function_exists('__') ? __( 'Add New ' . $name ) : WP_Core::__( 'Add New ' . $name ),
+				'edit_item' 			=> function_exists('__') ? __( 'Edit ' . $name ) : WP_Core::__( 'Edit ' . $name ),
+				'new_item' 				=> function_exists('__') ? __( 'New ' . $name ) : WP_Core::__( 'New ' . $name ),
+				'all_items' 			=> function_exists('__') ? __( 'All ' . $plural ) : WP_Core::__( 'All ' . $plural ),
+				'view_item' 			=> function_exists('__') ? __( 'View ' . $name ) : WP_Core::__( 'View ' . $name ),
+				'search_items' 			=> function_exists('__') ? __( 'Search ' . $plural ) : WP_Core::__( 'Search ' . $plural ),
+				'not_found' 			=> function_exists('__') ? __( 'No ' . strtolower( $plural ) . ' found') : WP_Core::__( 'No ' . strtolower( $plural ) . ' found'),
+				'not_found_in_trash' 	=> function_exists('__') ? __( 'No ' . strtolower( $plural ) . ' found in Trash') : WP_Core::__( 'No ' . strtolower( $plural ) . ' found in Trash'),
 				'parent_item_colon' 	=> '',
 				'menu_name' 			=> $plural
 			),
@@ -99,7 +105,11 @@ class Custom_Post_Type
 		);
 
 		// Register the post type
-		register_post_type( $this->post_type_name, $args );
+		if (function_exists('register_post_type')) {
+			register_post_type( $this->post_type_name, $args );
+		} else {
+			WP_Core::register_post_type( $this->post_type_name, $args );
+		}
 	}
 
 	/* Method to attach the taxonomy to the post type */
@@ -115,7 +125,13 @@ class Custom_Post_Type
 			$taxonomy_labels	= $labels;
 			$taxonomy_args		= $args;
 
-			if( ! taxonomy_exists( $taxonomy_name ) )
+			if (function_exists('register_post_type')) {
+				$tax_exists = taxonomy_exists( $taxonomy_name );
+			} else {
+				$tax_exists = WP_Taxonomy::taxonomy_exists( $taxonomy_name );
+			}
+
+			if( !$tax_exists )
 			{
 				//Capitilize the words and make it plural
 				$name 		= ucwords( str_replace( '_', ' ', $name ) );
@@ -126,17 +142,17 @@ class Custom_Post_Type
 
 					// Default
 					array(
-						'name' 					=> _x( $plural, 'taxonomy general name' ),
-						'singular_name' 		=> _x( $name, 'taxonomy singular name' ),
-					    'search_items' 			=> __( 'Search ' . $plural ),
-					    'all_items' 			=> __( 'All ' . $plural ),
-					    'parent_item' 			=> __( 'Parent ' . $name ),
-					    'parent_item_colon' 	=> __( 'Parent ' . $name . ':' ),
-					    'edit_item' 			=> __( 'Edit ' . $name ),
-					    'update_item' 			=> __( 'Update ' . $name ),
-					    'add_new_item' 			=> __( 'Add New ' . $name ),
-					    'new_item_name' 		=> __( 'New ' . $name . ' Name' ),
-					    'menu_name' 			=> __( $name ),
+						'name' 					=> function_exists('_x') ? _x( $plural, 'taxonomy general name' ) : WP_Core::_x( $plural, 'taxonomy general name' ),
+						'singular_name' 		=> function_exists('_x') ? _x( $name, 'taxonomy singular name' ) : WP_Core::_x( $name, 'taxonomy singular name' ),
+					    'search_items' 			=> function_exists('__') ? __( 'Search ' . $plural ) : WP_Core::__( 'Search ' . $plural ),
+					    'all_items' 			=> function_exists('__') ? __( 'All ' . $plural ) : WP_Core::__( 'All ' . $plural ),
+					    'parent_item' 			=> function_exists('__') ? __( 'Parent ' . $name ) : WP_Core::__( 'Parent ' . $name ),
+					    'parent_item_colon' 	=> function_exists('__') ? __( 'Parent ' . $name . ':' ) : WP_Core::__( 'Parent ' . $name . ':' ),
+					    'edit_item' 			=> function_exists('__') ? __( 'Edit ' . $name ) : WP_Core::__( 'Edit ' . $name ),
+					    'update_item' 			=> function_exists('__') ? __( 'Update ' . $name ) : WP_Core::__( 'Update ' . $name ),
+					    'add_new_item' 			=> function_exists('__') ? __( 'Add New ' . $name ) : WP_Core::__( 'Add New ' . $name ),
+					    'new_item_name' 		=> function_exists('__') ? __( 'New ' . $name . ' Name' ) : WP_Core::__( 'New ' . $name . ' Name' ),
+					    'menu_name' 			=> function_exists('__') ? __( $name ) : WP_Core::__( $name ),
 					),
 
 					// Given labels
@@ -163,21 +179,29 @@ class Custom_Post_Type
 				);
 
 				// Add the taxonomy to the post type
-				add_action( 'init',
-					function() use( $taxonomy_name, $post_type_name, $args )
-					{
-						register_taxonomy( $taxonomy_name, $post_type_name, $args );
-					}
-				);
+				if (function_exists('register_taxonomy')) {
+					add_action( 'init',
+						function() use( $taxonomy_name, $post_type_name, $args )
+						{
+							register_taxonomy( $taxonomy_name, $post_type_name, $args );
+						}
+					);
+				} else {
+					WP_Taxonomy::register_taxonomy( $taxonomy_name, $post_type_name, $args );
+				}
 			}
 			else
 			{
-				add_action( 'init',
-					function() use( $taxonomy_name, $post_type_name )
-					{
-						register_taxonomy_for_object_type( $taxonomy_name, $post_type_name );
-					}
-				);
+				if (function_exists('register_taxonomy_for_object_type')) {
+					add_action( 'init',
+						function() use( $taxonomy_name, $post_type_name )
+						{
+							register_taxonomy_for_object_type( $taxonomy_name, $post_type_name );
+						}
+					);
+				} else {
+					WP_Taxonomy::register_taxonomy_for_object_type( $taxonomy_name, $post_type_name );
+				}
 			}
 		}
 	}
@@ -185,6 +209,10 @@ class Custom_Post_Type
 	/* Attaches meta boxes to the post type */
 	public function add_meta_box( $title, $fields = array(), $context = 'normal', $priority = 'default' )
 	{
+		if (!function_exists('add_action')) {
+			return;	// not in wordpress, so can't be in admin, so no need to register the metabox hooks
+		}
+
 		if( ! empty( $title ) )
 		{
 			// We need to know the Post Type name again
@@ -246,6 +274,10 @@ class Custom_Post_Type
 	/* Listens for when the post type being saved */
 	public function save()
 	{
+		if (!function_exists('add_action')) {
+			return;	// not in wordpress, so can't be in admin, so no need to register the metabox hooks
+		}
+
 		// Need the post type name again
 		$post_type_name = $this->post_type_name;
 
