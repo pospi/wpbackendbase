@@ -4,7 +4,6 @@
  *
  * :TODO:
  * - add other datatypes to metabox code (number, date, datetime, bool, url, enum (radios) & options (checkgroup), image & file attachments)
- * - de-globalise $custom_fields
  *
  * Originally from http://wp.tutsplus.com/tutorials/creative-coding/custom-post-type-helper-class/
  * @author Gijs Jorissen
@@ -16,6 +15,8 @@ class Custom_Post_Type
 	public $post_type_name_plural;
 	public $post_type_args;
 	public $post_type_labels;
+
+	public $meta_fields;
 
 	/* Class constructor */
 	public function __construct( $name, $args = array(), $labels = array() )
@@ -224,9 +225,8 @@ class Custom_Post_Type
 			$box_context	= $context;
 			$box_priority	= $priority;
 
-			// Make the fields global
-			global $custom_fields;
-			$custom_fields[$title] = $fields;
+			// store the meta field so we know to save it
+			$this->meta_fields[$title] = $fields;
 
 			add_action( 'admin_init',
 				function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields )
@@ -236,22 +236,20 @@ class Custom_Post_Type
 						$box_title,
 						function( $post, $data )
 						{
-							global $post;
-
 							// Nonce field for some validation
 							wp_nonce_field( plugin_basename( __FILE__ ), 'custom_post_type' );
 
 							// Get all inputs from $data
-							$custom_fields = $data['args'][0];
+							$this->meta_fields = $data['args'][0];
 
 							// Get the saved values
 							$meta = get_post_custom( $post->ID );
 
 							// Check the array and loop through it
-							if( ! empty( $custom_fields ) )
+							if( ! empty( $this->meta_fields ) )
 							{
-								/* Loop through $custom_fields */
-								foreach( $custom_fields as $label => $type )
+								/* Loop through $this->meta_fields */
+								foreach( $this->meta_fields as $label => $type )
 								{
 									$field_id_name 	= strtolower( str_replace( ' ', '_', $data['id'] ) ) . '_' . strtolower( str_replace( ' ', '_', $label ) );
 
@@ -282,28 +280,24 @@ class Custom_Post_Type
 		$post_type_name = $this->post_type_name;
 
 		add_action( 'save_post',
-			function() use( $post_type_name )
+			function($postId) use( $post_type_name )
 			{
 				// Deny the wordpress autosave function
 				if( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
 
 				if ( isset($_POST['custom_post_type']) && ! wp_verify_nonce( $_POST['custom_post_type'], plugin_basename(__FILE__) ) ) return;
 
-				global $post;
-
-				if( isset( $_POST ) && isset( $post->ID ) && get_post_type( $post->ID ) == $post_type_name )
+				if( isset( $_POST ) && $postId && get_post_type($postId) == $post_type_name )
 				{
-					global $custom_fields;
-
 					// Loop through each meta box
-					foreach( $custom_fields as $title => $fields )
+					foreach( $this->meta_fields as $title => $fields )
 					{
 						// Loop through all fields
 						foreach( $fields as $label => $type )
 						{
 							$field_id_name 	= strtolower( str_replace( ' ', '_', $title ) ) . '_' . strtolower( str_replace( ' ', '_', $label ) );
 
-							update_post_meta( $post->ID, $field_id_name, $_POST['custom_meta'][$field_id_name] );
+							update_post_meta( $postId, $field_id_name, $_POST['custom_meta'][$field_id_name] );
 						}
 
 					}
