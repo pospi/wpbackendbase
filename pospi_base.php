@@ -21,8 +21,8 @@ require_once(POSPI_PLUGIN_BASE . "/custom_post_type.class.php");
 
 //Custom Css
 add_action( 'admin_init', function(){
-     wp_register_style( 'pospi_admin_base_css', plugins_url('css/admin.css', __FILE__) );
-     wp_enqueue_style( 'pospi_admin_base_css' );
+    wp_register_style( 'pospi_admin_base_css', plugins_url('css/admin.css', __FILE__) );
+    wp_enqueue_style( 'pospi_admin_base_css' );
 });
 
 // plugin activation hook
