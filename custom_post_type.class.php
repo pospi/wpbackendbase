@@ -262,8 +262,8 @@ class Custom_Post_Type
 											$options = array();
 										}
 
-										$metaKeyName = 'custom_meta[' . $metaBoxId . '_' . Custom_Post_Type::get_field_id_name($label) . ']';
-										$form->addField($metaKeyName, $label, $type, isset($meta[$metaKeyName][0]) ? $meta[$metaKeyName][0] : (isset($options['default']) ? $options['default'] : null));
+										$metaKeyName = $metaBoxId . '_' . Custom_Post_Type::get_field_id_name($label);
+										$form->addField('custom_meta[' . $metaKeyName . ']', $label, $type, isset($meta[$metaKeyName][0]) ? $meta[$metaKeyName][0] : (isset($options['default']) ? $options['default'] : null));
 
 										// add field options if this is a multiple input type
 										if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
@@ -372,7 +372,7 @@ class Custom_Post_Type
 			foreach ($fields as $label => $type) {
 				$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
 
-				update_post_meta($postId, $field_id_name, $metaFields[$field_id_name]);
+				update_post_meta($postId, $field_id_name, isset($metaFields[$field_id_name]) ? $metaFields[$field_id_name] : null);
 			}
 		}
 	}
