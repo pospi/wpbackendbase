@@ -210,10 +210,6 @@ class Custom_Post_Type
 	/* Attaches meta boxes to the post type */
 	public function add_meta_box( $title, $fields = array(), $context = 'normal', $priority = 'default' )
 	{
-		if (!function_exists('add_action')) {
-			return;	// not in wordpress, so can't be in admin, so no need to register the metabox hooks
-		}
-
 		if( ! empty( $title ) )
 		{
 			// We need to know the Post Type name again
@@ -227,6 +223,10 @@ class Custom_Post_Type
 
 			// store the meta field so we know to save it
 			$this->meta_fields[$title] = $fields;
+
+			if (!function_exists('add_action')) {
+				return;	// not in wordpress, so can't be in admin, so no need to register the metabox hooks
+			}
 
 			add_action( 'admin_init',
 				function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields )
