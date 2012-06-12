@@ -2,8 +2,7 @@
 /**
  * Custom post type helper class
  *
- * :TODO:
- * - add other datatypes to metabox code (number, date, datetime, bool, url, enum (radios) & options (checkgroup), image & file attachments)
+ * Metabox datatype inputs are now controlled by FormIO - use formIO datatypes as field types in your add_meta_box options.
  *
  * Originally from http://wp.tutsplus.com/tutorials/creative-coding/custom-post-type-helper-class/
  * @author Gijs Jorissen
@@ -17,6 +16,8 @@ class Custom_Post_Type
 	public $post_type_labels;
 
 	public $meta_fields;
+
+	public $formHandlers = array();	// FormIO instances used to render and validate each metabox
 
 	private static $postTypeRegister = array();
 
@@ -240,29 +241,49 @@ class Custom_Post_Type
 					add_meta_box(
 						$box_id,
 						$box_title,
-						function( $post, $data )
+						function( $post, $data ) use ($that)
 						{
-							// Nonce field for some validation
-							wp_nonce_field( plugin_basename( __FILE__ ), 'custom_post_type' );
-
-							// Get all inputs from $data
-							$that->meta_fields = $data['args'][0];
+							$metaBoxId = $data['id'];			// metabox ID used for form ID
+							$meta_fields = $data['args'][0];	// Get all inputs from $data
 
 							// Get the saved values
 							$meta = get_post_custom( $post->ID );
 
-							// Check the array and loop through it
-							if( ! empty( $that->meta_fields ) )
-							{
-								/* Loop through $this->meta_fields */
-								foreach( $that->meta_fields as $label => $type )
-								{
-									$field_id_name 	= strtolower( str_replace( ' ', '_', $data['id'] ) ) . '_' . strtolower( str_replace( ' ', '_', $label ) );
+							// create a formIO instance for managing this box's metadata
+							if (!isset($that->formHandlers[$metaBoxId])) {
+								$form = new FormIO('', 'POST');
 
-									echo '<label for="' . $field_id_name . '">' . $label . '</label><input type="text" name="custom_meta[' . $field_id_name . ']" id="' . $field_id_name . '" value="' . (isset($meta[$field_id_name][0]) ? $meta[$field_id_name][0] : '') . '" />';
+								// insert all metabox fields into the form
+								if (!empty($meta_fields)) {
+									foreach ($meta_fields as $label => $type) {
+										if (is_array($type)) {
+											list($type, $options) = $type;
+										} else {
+											$options = array();
+										}
+
+										$metaKeyName = 'custom_meta[' . $metaBoxId . '_' . Custom_Post_Type::get_field_id_name($label) . ']';
+										$form->addField($metaKeyName, $label, $type, isset($meta[$metaKeyName][0]) ? $meta[$metaKeyName][0] : (isset($options['default']) ? $options['default'] : null));
+
+										// add field options if this is a multiple input type
+										if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
+											foreach ($options['values'] as $v) {
+												$form->addOption(Custom_Post_Type::get_field_id_name($v), $v);
+											}
+										}
+									}
 								}
+
+								$that->formHandlers[$metaBoxId] = $form;
+							} else {
+								$form = $that->formHandlers[$metaBoxId];
 							}
 
+							// Write a nonce field for some validation
+							wp_nonce_field( plugin_basename( __FILE__ ), 'custom_post_type' );
+
+							// output the metabox edit form HTML
+							echo $form->getFieldsHTML();
 						},
 						$post_type_name,
 						$box_context,
@@ -285,28 +306,17 @@ class Custom_Post_Type
 		// Need the post type name again
 		$post_type_name = $this->post_type_name;
 
+		$that = $this;
 		add_action( 'save_post',
-			function($postId) use( $post_type_name )
+			function($postId) use( $that, $post_type_name )
 			{
 				// Deny the wordpress autosave function
 				if( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
 
 				if ( isset($_POST['custom_post_type']) && ! wp_verify_nonce( $_POST['custom_post_type'], plugin_basename(__FILE__) ) ) return;
 
-				if( isset( $_POST ) && $postId && get_post_type($postId) == $post_type_name )
-				{
-					// Loop through each meta box
-					foreach( $this->meta_fields as $title => $fields )
-					{
-						// Loop through all fields
-						foreach( $fields as $label => $type )
-						{
-							$field_id_name 	= strtolower( str_replace( ' ', '_', $title ) ) . '_' . strtolower( str_replace( ' ', '_', $label ) );
-
-							update_post_meta( $postId, $field_id_name, $_POST['custom_meta'][$field_id_name] );
-						}
-
-					}
+				if( isset( $_POST['custom_meta'] ) && $postId && get_post_type($postId) == $post_type_name ) {
+					$that->update_post_meta($postId, $_POST['custom_meta']);
 				}
 			}
 		);
@@ -348,7 +358,26 @@ class Custom_Post_Type
 		return $postMeta;
 	}
 
-	private static function get_field_id_name($label)
+	/**
+	 * Update metadata for a post, but only metadata of this post type's.
+	 * @param  int    $postId     ID of post to update metadata for
+	 * @param  Array  $metaFields Flat array of metadata keys/values.
+	 *                            Key names are given by lowerase concatenation of the metabox's title and field name with underscores.
+	 */
+	public function update_post_meta($postId, Array $metaFields)
+	{
+		// Loop through each meta box
+		foreach ($this->meta_fields as $title => $fields) {
+			// Loop through all fields
+			foreach ($fields as $label => $type) {
+				$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
+
+				update_post_meta($postId, $field_id_name, $metaFields[$field_id_name]);
+			}
+		}
+	}
+
+	public static function get_field_id_name($label)
 	{
 		return strtolower( str_replace( ' ', '_', $label ) );
 	}

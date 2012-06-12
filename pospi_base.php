@@ -12,17 +12,26 @@ License: MIT
 //Setup some secondary variable "constants"
 define('POSPI_PLUGIN_BASE', dirname(__FILE__));
 
+require_once("lib/formio/form_io.class.php");
 require_once(POSPI_PLUGIN_BASE . "/custom_post_type.class.php");
 
 //Custom Javascript
-//add_action('admin_enqueue_scripts',function(){
-//   wp_register_script("jquery","https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js",array(),"1.6.4");
-//});
+add_action('admin_enqueue_scripts',function(){
+	// wp_register_script("jquery","https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js",array(),"1.6.4");
+	wp_register_script('formio', includes_url('formio/formio.js', __FILE__), array('jquery'));
+	wp_enqueue_script('formio');
+
+	wp_register_script('site-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio'));
+	wp_enqueue_script('site-admin-js');
+});
 
 //Custom Css
-add_action( 'admin_init', function(){
-    wp_register_style( 'pospi_admin_base_css', plugins_url('css/admin.css', __FILE__) );
-    wp_enqueue_style( 'pospi_admin_base_css' );
+add_action( 'admin_init', function() {
+    wp_register_style('formio_css', includes_url('formio/formio.css', __FILE__));
+    wp_enqueue_style('formio_css');
+
+    wp_register_style('pospi_admin_base_css', plugins_url('css/admin.css', __FILE__));
+    wp_enqueue_style('pospi_admin_base_css');
 });
 
 // plugin activation hook
