@@ -18,6 +18,8 @@ class Custom_Post_Type
 
 	public $meta_fields;
 
+	private static $postTypeRegister = array();
+
 	/* Class constructor */
 	public function __construct( $name, $args = array(), $labels = array() )
 	{
@@ -45,6 +47,9 @@ class Custom_Post_Type
 
 		// Listen for the save post hook
 		$this->save();
+
+		// store ourselves in the loaded post types register so we can be retrieved again
+		self::$postTypeRegister[$this->post_type_name] = $this;
 	}
 
 	/* Method which registers the post type */
@@ -304,5 +309,57 @@ class Custom_Post_Type
 				}
 			}
 		);
+	}
+
+	/**
+	 * Read metadata for a post, but only metadata of this post type's.
+	 * This method also normalises single element arrays into their first value.
+	 */
+	public function get_post_meta($postId)
+	{
+		// get all metadata for this post
+		if (function_exists('get_post_custom')) {
+			$meta = get_post_custom( $postId );
+		} else {
+			$meta = WP_Core::get_post_custom( $postId );
+		}
+
+		$ourMeta = array();
+
+		// Loop through each meta box
+		foreach( $this->meta_fields as $title => $fields ) {
+			// Loop through all fields
+			foreach( $fields as $label => $type ) {
+				$ourMeta[self::get_field_id_name($title) . '_' . self::get_field_id_name($label)] = true;
+			}
+		}
+
+		// filter out metadata not belonging to us
+		$postMeta = array_intersect_key($meta, $ourMeta);
+
+		// normalise single element metadata arrays
+		foreach ($postMeta as &$meta) {
+			if (is_array($meta) && count($meta) == 1) {
+				$meta = $meta[0];
+			}
+		}
+
+		return $postMeta;
+	}
+
+	private static function get_field_id_name($label)
+	{
+		return strtolower( str_replace( ' ', '_', $label ) );
+	}
+
+	//----------------------------------------------------------------------------------------------------------------------------------------------------
+	//	read post types created via this interface
+
+	public static function get_post_type($name)
+	{
+		if (isset(self::$postTypeRegister[$name])) {
+			return self::$postTypeRegister[$name];
+		}
+		return null;
 	}
 }
