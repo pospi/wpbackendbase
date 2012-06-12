@@ -233,8 +233,9 @@ class Custom_Post_Type
 				return;	// not in wordpress, so can't be in admin, so no need to register the metabox hooks
 			}
 
+			$that = $this;
 			add_action( 'admin_init',
-				function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields )
+				function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields, $that )
 				{
 					add_meta_box(
 						$box_id,
@@ -245,16 +246,16 @@ class Custom_Post_Type
 							wp_nonce_field( plugin_basename( __FILE__ ), 'custom_post_type' );
 
 							// Get all inputs from $data
-							$this->meta_fields = $data['args'][0];
+							$that->meta_fields = $data['args'][0];
 
 							// Get the saved values
 							$meta = get_post_custom( $post->ID );
 
 							// Check the array and loop through it
-							if( ! empty( $this->meta_fields ) )
+							if( ! empty( $that->meta_fields ) )
 							{
 								/* Loop through $this->meta_fields */
-								foreach( $this->meta_fields as $label => $type )
+								foreach( $that->meta_fields as $label => $type )
 								{
 									$field_id_name 	= strtolower( str_replace( ' ', '_', $data['id'] ) ) . '_' . strtolower( str_replace( ' ', '_', $label ) );
 
