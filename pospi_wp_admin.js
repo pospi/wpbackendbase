@@ -1,5 +1,9 @@
 (function($) {
 	$(function() {
-		$('input[name=custom_post_type]').parent().addClass('formio');
+		// init formIO for our metabox fields
+		var metaboxes = $('input[name=custom_post_type]').parent();
+
+		metaboxes.addClass('formio');
+		metaboxes.closest('form').formio();
 	});
 })(jQuery);

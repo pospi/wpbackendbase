@@ -18,6 +18,9 @@ require_once(POSPI_PLUGIN_BASE . "/custom_post_type.class.php");
 //Custom Javascript
 add_action('admin_enqueue_scripts',function(){
 	// wp_register_script("jquery","https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js",array(),"1.6.4");
+	wp_register_script("jquery_ui","http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js",array(),"1.8.18");
+	wp_enqueue_script("jquery_ui");
+
 	wp_register_script('formio', includes_url('formio/formio.js', __FILE__), array('jquery'));
 	wp_enqueue_script('formio');
 
@@ -27,6 +30,9 @@ add_action('admin_enqueue_scripts',function(){
 
 //Custom Css
 add_action( 'admin_init', function() {
+	wp_register_style('jquery_ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css');
+	wp_enqueue_style('jquery_ui');
+
     wp_register_style('formio_css', includes_url('formio/formio.css', __FILE__));
     wp_enqueue_style('formio_css');
 
