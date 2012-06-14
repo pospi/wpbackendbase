@@ -15,7 +15,8 @@ class Custom_Post_Type
 	public $post_type_args;
 	public $post_type_labels;
 
-	public $meta_fields;
+	public $meta_fields = array();
+	public $taxonomies = array();
 
 	public $formHandlers = array();	// FormIO instances used to render and validate each metabox
 
@@ -131,6 +132,9 @@ class Custom_Post_Type
 			$taxonomy_name		= strtolower( str_replace( ' ', '_', $name ) );
 			$taxonomy_labels	= $labels;
 			$taxonomy_args		= $args;
+
+			// register the taxonomy so we know to read its data for posts
+			$this->taxonomies[] = $taxonomy_name;
 
 			if (function_exists('register_post_type')) {
 				$tax_exists = taxonomy_exists( $taxonomy_name );
@@ -323,6 +327,36 @@ class Custom_Post_Type
 	}
 
 	/**
+	 * Read full data for a post (excluding basic info retrieved with its core data)
+	 */
+	public function get_post_data($postId)
+	{
+		return array(
+			'meta'	=> $this->get_post_meta($postId),
+			'terms'	=> $this->get_post_terms($postId),
+		);
+	}
+
+	/**
+	 * Read taxonomy terms for a post, but only taxonomies of this post type's.
+	 */
+	public function get_post_terms($postId)
+	{
+		// create an array to hold the terms of each taxonomy registered for the post type
+		$taxonomies = array_combine($this->taxonomies, array_fill(0, count($this->taxonomies), array()));
+
+		foreach ($taxonomies as $taxonomy => &$terms) {
+			if (function_exists('get_the_terms')) {
+				$terms = get_the_terms( $postId, $taxonomy );
+			} else {
+				$terms = WP_Taxonomy::get_the_terms( $postId, $taxonomy );
+			}
+		}
+
+		return $taxonomies;
+	}
+
+	/**
 	 * Read metadata for a post, but only metadata of this post type's.
 	 * This method also normalises single element arrays into their first value.
 	 */
@@ -375,6 +409,19 @@ class Custom_Post_Type
 				update_post_meta($postId, $field_id_name, isset($metaFields[$field_id_name]) ? $metaFields[$field_id_name] : null);
 			}
 		}
+	}
+
+	public function get_post_meta_fields()
+	{
+		$fields = array();
+
+		foreach ($this->meta_fields as $title => $boxFields) {
+			foreach ($boxFields as $label => $type) {
+				$fields[] = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
+			}
+		}
+
+		return $fields;
 	}
 
 	public static function get_field_id_name($label)
