@@ -12,8 +12,11 @@ License: MIT
 //Setup some secondary variable "constants"
 define('POSPI_PLUGIN_BASE', dirname(__FILE__));
 
-require_once("lib/formio/form_io.class.php");
+require_once("lib/formio/form_io.class.php");		// :TODO: import as submodule...
 require_once(POSPI_PLUGIN_BASE . "/custom_post_type.class.php");
+require_once(POSPI_PLUGIN_BASE . "/formio_field-posttypes.class.php");
+require_once(POSPI_PLUGIN_BASE . "/formio_field-links.class.php");
+require_once(POSPI_PLUGIN_BASE . "/formio_field-attachments.class.php");
 
 //Custom Javascript
 add_action('admin_enqueue_scripts',function(){

@@ -275,6 +275,12 @@ class Custom_Post_Type
 												$form->addOption(Custom_Post_Type::get_field_id_name($v), $v);
 											}
 										}
+
+										// set post type and query options for post type fields
+										if (in_array($type, array('posttypes', 'links'))) {
+											$field = $form->getLastField();
+											$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : null, isset($options['query_args']) ? $options['query_args'] : array());
+										}
 									}
 								}
 
