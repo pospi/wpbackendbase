@@ -251,7 +251,7 @@ class Custom_Post_Type
 							$meta_fields = $data['args'][0];	// Get all inputs from $data
 
 							// Get the saved values
-							$meta = get_post_custom( $post->ID );
+							$meta = $that->get_post_meta( $post->ID );
 
 							// create a formIO instance for managing this box's metadata
 							if (!isset($that->formHandlers[$metaBoxId])) {
@@ -267,7 +267,7 @@ class Custom_Post_Type
 										}
 
 										$metaKeyName = $metaBoxId . '_' . Custom_Post_Type::get_field_id_name($label);
-										$form->addField('custom_meta[' . $metaKeyName . ']', $label, $type, isset($meta[$metaKeyName][0]) ? $meta[$metaKeyName][0] : (isset($options['default']) ? $options['default'] : null));
+										$form->addField('custom_meta[' . $metaKeyName . ']', $label, $type, isset($meta[$metaKeyName]) ? $meta[$metaKeyName] : (isset($options['default']) ? $options['default'] : null));
 
 										// add field options if this is a multiple input type
 										if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
