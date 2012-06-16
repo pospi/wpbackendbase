@@ -28,26 +28,10 @@ class FormIOField_Links extends FormIOField_Posttypes
 
 	//--------------------------------------------------------------------------
 
-	protected function getNextOptionVars()
+	protected function addPostTypeVars(&$vars)
 	{
-		if (!$vars = FormIOField_Multiple::getNextOptionVars()) {
-			$this->optionNum = 0;
-			return false;
-		}
-
-		$vars['name'] = $this->getName();
-
-		if (isset($this->value[$vars['value']])) {
-			$val = $this->value[$vars['value']];
-			$vars['checked'] = ($val === true || $val === 'on' || $val === 'true' || (is_numeric($val) && $val > 0));
-		}
-
 		$vars['postTitle'] = $this->results[$this->optionNum]->link_name;
 		$vars['editPostUrl'] = $this->results[$this->optionNum]->link_id;
-
-		++$this->optionNum;
-
-		return $vars;
 	}
 }
 ?>

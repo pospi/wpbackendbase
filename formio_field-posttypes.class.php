@@ -88,12 +88,17 @@ class FormIOField_Posttypes extends FormIOField_Multiple
 			$vars['checked'] = ($val === true || $val === 'on' || $val === 'true' || (is_numeric($val) && $val > 0));
 		}
 
-		$vars['postTitle'] = $this->results[$this->optionNum]->post_title;
-		$vars['editPostUrl'] = $this->results[$this->optionNum]->ID;
+		$this->addPostTypeVars($vars);
 
 		++$this->optionNum;
 
 		return $vars;
+	}
+
+	protected function addPostTypeVars(&$vars)
+	{
+		$vars['postTitle'] = $this->results[$this->optionNum]->post_title;
+		$vars['editPostUrl'] = $this->results[$this->optionNum]->ID;
 	}
 }
 ?>

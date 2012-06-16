@@ -14,6 +14,7 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'post_type' => 'attachment',
+		'post_status' => 'inherit',		// needed to query for attachment post types
 		'posts_per_page' => -1,
 	);
 
@@ -27,42 +28,14 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 		$this->rebuildResults();
 	}
 
-	protected function rebuildResults()
-	{
-		$this->results = get_posts($this->queryArgs);
-
-		$postIds = array();
-		foreach ($this->results as $post) {
-			$postIds[$post->ID] = $post->post_title;
-		}
-
-		$this->setOptions($postIds);
-	}
-
 	//--------------------------------------------------------------------------
 
-	protected function getNextOptionVars()
+	protected function addPostTypeVars(&$vars)
 	{
-		if (!$vars = FormIOField_Multiple::getNextOptionVars()) {
-			$this->optionNum = 0;
-			return false;
-		}
-
-		$vars['name'] = $this->getName();
-
-		if (isset($this->value[$vars['value']])) {
-			$val = $this->value[$vars['value']];
-			$vars['checked'] = ($val === true || $val === 'on' || $val === 'true' || (is_numeric($val) && $val > 0));
-		}
-
 		$vars['postTitle'] = $this->results[$this->optionNum]->post_title;
 		$vars['editPostUrl'] = $this->results[$this->optionNum]->ID;
 		$vars['viewPostUrl'] = $this->results[$this->optionNum]->ID;
 		$vars['postThumbUrl'] = $this->results[$this->optionNum]->ID;
-
-		++$this->optionNum;
-
-		return $vars;
 	}
 }
 ?>
