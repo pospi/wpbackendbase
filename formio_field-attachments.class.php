@@ -10,7 +10,8 @@
 
 class FormIOField_Attachments extends FormIOField_Posttypes
 {
-	public $imageFieldBuildString = '<label><a href="{$viewPostUrl}"><img src="{$postThumbUrl}" /><input type="checkbox" name="{$name}[{$value}]"{$disabled? disabled="disabled"}{$checked? checked="checked"} /></a> <a href="{$editPostUrl}">{$postTitle}</a></label>';
+	public $standardBuildString;
+	public $imageFieldBuildString = '<div><a href="{$viewPostUrl}" target="_blank"><img src="{$postThumbUrl}" /></a><label><input type="checkbox" name="{$name}[{$value}]"{$disabled? disabled="disabled"}{$checked? checked="checked"} /></a> <a href="{$editPostUrl}">{$postTitle}</label></div>';
 
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'post_type' => 'attachment',
@@ -18,12 +19,25 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 		'posts_per_page' => -1,
 	);
 
+	public function __construct($form, $name, $displayText = null, $defaultValue = null)
+	{
+		$this->standardBuildString = $this->subfieldBuildString;
+		parent::__construct($form, $name, $displayText, $defaultValue);
+	}
+
 	public function setQueryArgs($attachmentType = 'image', Array $args)
 	{
+		if (!isset($attachmentType)) $attachmentType = 'image';
 		$args['post_mime_type'] = $attachmentType;
 		$args = array_merge($args, self::$DEFAULT_QUERY_ARGS);
 
 		$this->queryArgs = $args;
+
+		if ($attachmentType == 'image') {
+			$this->subfieldBuildString = $this->imageFieldBuildString;
+		} else {
+			$this->subfieldBuildString = $this->standardBuildString;
+		}
 
 		$this->rebuildResults();
 	}
@@ -33,9 +47,9 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 	protected function addPostTypeVars(&$vars)
 	{
 		$vars['postTitle'] = $this->results[$this->optionNum]->post_title;
-		$vars['editPostUrl'] = $this->results[$this->optionNum]->ID;
-		$vars['viewPostUrl'] = $this->results[$this->optionNum]->ID;
-		$vars['postThumbUrl'] = $this->results[$this->optionNum]->ID;
+		$vars['editPostUrl'] = 'wp-admin/media.php?action=edit&attachment_id=' . $this->results[$this->optionNum]->ID;
+		$vars['viewPostUrl'] = wp_get_attachment_url($this->results[$this->optionNum]->ID);
+		$vars['postThumbUrl'] = wp_get_attachment_thumb_url($this->results[$this->optionNum]->ID);
 	}
 }
 ?>
