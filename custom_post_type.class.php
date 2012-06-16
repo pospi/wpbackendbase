@@ -387,6 +387,13 @@ class Custom_Post_Type
 			if (is_array($meta) && count($meta) == 1) {
 				$meta = $meta[0];
 			}
+
+			// unserialise metadata too
+			if (function_exists('maybe_unserialize')) {
+				$meta = maybe_unserialize($meta);
+			} else {
+				$meta = WP_Core::maybe_unserialize($meta);
+			}
 		}
 
 		return $postMeta;
