@@ -15,7 +15,7 @@ require_once(FORMIO_FIELDS . 'formio_field-multiple.class.php');
 
 class FormIOField_Posttypes extends FormIOField_Multiple
 {
-	public $buildString = '<fieldset id="{$id}" class="row multiple col{$columns}{$alt? alt}"{$dependencies? data-fio-depends="$dependencies"}{$validation? data-fio-validation="$validation"}><legend>{$desc}{$required? <span class="required">*</span>}</legend>{$options}{$error?<p class="err">$error</p>}<p class="hint">{$hint}</p></fieldset>';
+	public $buildString = '<fieldset id="{$id}" class="row multiple posttype col{$columns}{$alt? alt}"{$dependencies? data-fio-depends="$dependencies"}{$validation? data-fio-validation="$validation"}><legend>{$desc}{$required? <span class="required">*</span>}</legend>{$options}{$error?<p class="err">$error</p>}<p class="hint">{$hint}</p></fieldset>';
 	public $subfieldBuildString = '<label><input type="checkbox" name="{$name}[{$value}]"{$disabled? disabled="disabled"}{$checked? checked="checked"} /> <a href="{$editPostUrl}">{$postTitle}</a></label>';
 
 	protected $results;
