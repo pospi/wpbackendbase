@@ -38,7 +38,7 @@ class FormIOField_Links extends FormIOField_Posttypes
 			);
 			$this->addPostTypeVars($postResult, $post);
 
-			$postIds[] = $postResult;
+			$postIds[$post->link_id] = $postResult;
 		}
 
 		return $postIds;
@@ -58,6 +58,9 @@ class FormIOField_Links extends FormIOField_Posttypes
 	 */
 	protected function handleSearchInput($str)
 	{
+		if (!$str) {
+			return array();
+		}
 		return array(
 			'search' => $str,
 		);

@@ -15,11 +15,15 @@ require_once(FORMIO_FIELDS . 'formio_field-multiple.class.php');
 
 class FormIOField_Posttypes extends FormIOField_Autocomplete
 {
+	public $buildString = '<div class="row{$alt? alt}{$classes? $classes}"><label for="{$id}">{$desc}{$required? <span class="required">*</span>}</label><input type="hidden" name="{$name}"{$value? value="$value"} /><input type="text" name="{$friendlyName}" id="{$id}"{$friendlyValue? value="$friendlyValue"}{$maxlen? maxlength="$maxlen"}{$behaviour? data-fio-type="$behaviour"}{$validation? data-fio-validation="$validation"} data-fio-searchurl="{$searchurl}"{$multiple? data-fio-multiple="$multiple"}{$delimiter? data-fio-delimiter="$delimiter"}{$dependencies? data-fio-depends="$dependencies"} />{$error?<p class="err">$error</p>}<p class="hint">{$hint}</p></div>';
+
 	const DEFAULT_POST_LIMIT = 30;
 	protected static $DEFAULT_POST_TYPE = 'post';
 
 	protected $results;
 	protected $queryArgs;
+
+	protected $friendlyValue;	// human readable version of $value (value will mostly be ID lists)
 
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'posts_per_page' => -1,
@@ -34,6 +38,53 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 
 		$this->setMultiple();
 	}
+
+	public function setValue($value)
+	{
+		if (!$value) {
+			return parent::setValue($value);
+		} else if (!is_array($value)) {
+			$value = explode($this->getAttribute('delimiter', self::DEFAULT_DELIM), $value);
+			$value = array_filter($value, function($var) {
+				return $var || $var === '0' || $var === 0;
+			});
+			$value = array_map('trim', $value);
+		}
+
+		if (!$this->results) {
+			$ids = $this->runRequest(null);
+		} else {
+			$ids = $this->handleQueryResults();
+		}
+		$friendlyValsArr = array();
+
+		foreach ($value as $id) {
+			$friendlyValsArr[] = $ids[$id]['label'];
+		}
+
+		$this->friendlyValue = implode($this->getAttribute('delimiter', self::DEFAULT_DELIM), $friendlyValsArr);
+
+		parent::setValue($value);
+	}
+
+	protected function getBuilderVars()
+	{
+		$vars = parent::getBuilderVars();
+
+		$vars['friendlyValue'] = $this->friendlyValue;
+
+		$name = $this->getName();
+		if (substr($name, -1) == ']') {
+			$name = substr($name, 0, strlen($name) - 1) . '_friendly]';
+		} else {
+			$name .= '_friendly';
+		}
+		$vars['friendlyName'] = $name;
+
+		return $vars;
+	}
+
+	//--------------------------------------------------------------------------
 
 	/**
 	 * Sets the post type & arguments to WP_Query for this input's list of options.
@@ -103,7 +154,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 			);
 			$this->addPostTypeVars($postResult, $post);
 
-			$postIds[] = $postResult;
+			$postIds[$post->ID] = $postResult;
 		}
 
 		return $postIds;
@@ -127,6 +178,9 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 	protected function handleSearchInput($str)
 	{
 		$words = preg_split('/\s+/', trim($str));
+		if (!$str || !$words) {
+			return array();
+		}
 
 		return array(
 			'post_title_in' => $words,

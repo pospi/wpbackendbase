@@ -445,7 +445,8 @@ class Custom_Post_Type
 					$metaKeyName = $metaBoxId . '_' . $metaFieldId;
 					$fieldName = 'custom_meta[' . $metaKeyName . ']';
 
-					$form->addField($fieldName, $label, $type, isset($meta[$metaKeyName]) ? $meta[$metaKeyName] : (isset($options['default']) ? $options['default'] : null));
+					$form->addField($fieldName, $label, $type);
+					$field = $form->getLastField();
 
 					// add field options if this is a multiple input type
 					if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
@@ -456,8 +457,6 @@ class Custom_Post_Type
 
 					// set post type and query options for post type fields
 					if (in_array($type, array('posttypes', 'links', 'attachments'))) {
-						$field = $form->getLastField();
-
 						$args = array_merge(array(
 							'metabox' => $metaBoxId, // required for loading fields in post data autocomplete script
 							'metakey' => $fieldName,
@@ -465,6 +464,13 @@ class Custom_Post_Type
 						), isset($options['query_args']) ? $options['query_args'] : array());
 
 						$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : null, $args);
+					}
+
+					// set default value (:WARNING: must be done after calling setQueryArgs() due to post title lookups for prefilling the list's values)
+					if (isset($meta[$metaKeyName])) {
+						$field->setValue($meta[$metaKeyName]);
+					} else if (isset($options['default'])) {
+						$field->setValue($options['default']);
 					}
 				}
 

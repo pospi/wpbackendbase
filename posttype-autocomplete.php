@@ -23,4 +23,4 @@ $field = $postType->formHandlers[$metaBox]->getField($metaKey);
 
 // run field query & output it
 header('Content-type: application/json');
-echo json_encode($field->runRequest($_GET['term']));
+echo json_encode(array_values($field->runRequest($_GET['term'])));
