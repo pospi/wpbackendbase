@@ -3,9 +3,6 @@
 		// init formIO for our metabox fields
 		var metaboxes = $('input[name=custom_post_type]').parent();
 
-		// use formIO styles in our metaboxes
-		metaboxes.addClass('formio');
-
 		// init form UI javascript
 		metaboxes.closest('form').formio({
 			setupRoutines : {

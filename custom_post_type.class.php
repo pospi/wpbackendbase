@@ -239,6 +239,8 @@ class Custom_Post_Type
 			}
 
 			$that = $this;
+
+			// output the metabox for our post type on the admin screen
 			add_action( 'admin_init',
 				function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields, $that )
 				{
@@ -265,6 +267,12 @@ class Custom_Post_Type
 					);
 				}
 			);
+
+			// also set the metabox's class for formIO input styling
+			add_filter("postbox_classes_{$post_type_name}_{$box_id}", function($metaboxClasses) {
+				$metaboxClasses[] = 'formio';
+				return $metaboxClasses;
+			});
 		}
 
 	}
