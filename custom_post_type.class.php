@@ -247,53 +247,16 @@ class Custom_Post_Type
 						$box_title,
 						function( $post, $data ) use ($that)
 						{
-							$metaBoxId = $data['id'];			// metabox ID used for form ID
-							$meta_fields = $data['args'][0];	// Get all inputs from $data
+							$metaBoxId = $data['id'];
 
 							// Get the saved values
 							$meta = $that->get_post_meta( $post->ID );
 
-							// create a formIO instance for managing this box's metadata
-							if (!isset($that->formHandlers[$metaBoxId])) {
-								$form = new FormIO('', 'POST');
-
-								// insert all metabox fields into the form
-								if (!empty($meta_fields)) {
-									foreach ($meta_fields as $label => $type) {
-										if (is_array($type)) {
-											list($type, $options) = $type;
-										} else {
-											$options = array();
-										}
-
-										$metaKeyName = $metaBoxId . '_' . Custom_Post_Type::get_field_id_name($label);
-										$form->addField('custom_meta[' . $metaKeyName . ']', $label, $type, isset($meta[$metaKeyName]) ? $meta[$metaKeyName] : (isset($options['default']) ? $options['default'] : null));
-
-										// add field options if this is a multiple input type
-										if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
-											foreach ($options['values'] as $v) {
-												$form->addOption(Custom_Post_Type::get_field_id_name($v), $v);
-											}
-										}
-
-										// set post type and query options for post type fields
-										if (in_array($type, array('posttypes', 'links', 'attachments'))) {
-											$field = $form->getLastField();
-											$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : null, isset($options['query_args']) ? $options['query_args'] : array());
-										}
-									}
-								}
-
-								$that->formHandlers[$metaBoxId] = $form;
-							} else {
-								$form = $that->formHandlers[$metaBoxId];
-							}
-
 							// Write a nonce field for some validation
 							wp_nonce_field( plugin_basename( __FILE__ ), 'custom_post_type' );
 
-							// output the metabox edit form HTML
-							echo $form->getFieldsHTML();
+							// draw the box's inputs
+							$that->get_metabox_form_output($metaBoxId, $meta);
 						},
 						$post_type_name,
 						$box_context,
@@ -435,6 +398,79 @@ class Custom_Post_Type
 		}
 
 		return $fields;
+	}
+
+	public function get_metabox_form_output($boxName, Array $meta = null)
+	{
+		$metaBoxId = self::get_field_id_name($boxName);
+
+		if ($meta || !isset($this->formHandlers[$metaBoxId])) {		// ensure form handler is created and initialised with the correct values for the passed metadata
+			$this->init_form_handlers($meta, true);
+		}
+
+
+		echo $this->formHandlers[$metaBoxId]->getFieldsHTML();
+	}
+
+	/**
+	 * Initialises the form handlers used to save this post type's data.
+	 * Useful for external code wishing to access internal attributes of variable submission inputs
+	 * @see posttype-autocomplete.php
+	 *
+	 * @param	array $meta		input metadata to prefill the form with. This will be a flat array concatenated with get_field_id_name().
+	 * @param	bool  $draw		if true, forms will be output for the inputs as created. This is mainly a speed / convenience flag, you could always iterate these yourself afterwards.
+	 * @param	bool  $force	if true, form handlers will be recreated even if already loaded
+	 */
+	public function init_form_handlers(Array $meta = null, $force = false)
+	{
+		if (!isset($meta)) $meta = array();
+
+		foreach ($this->meta_fields as $title => $meta_fields) {
+			$metaBoxId = self::get_field_id_name($title);			// metabox ID used for form ID
+
+			// create a formIO instance for managing this box's metadata if not already present
+			if ($force || !isset($this->formHandlers[$metaBoxId])) {
+				$form = new FormIO('', 'POST');
+
+				// add all box's fields to the form
+				foreach ($meta_fields as $label => $type) {
+					// interpret input options or just field type string
+					if (is_array($type)) {
+						list($type, $options) = $type;
+					} else {
+						$options = array();
+					}
+
+					$metaFieldId = self::get_field_id_name($label);
+					$metaKeyName = $metaBoxId . '_' . $metaFieldId;
+					$fieldName = 'custom_meta[' . $metaKeyName . ']';
+
+					$form->addField($fieldName, $label, $type, isset($meta[$metaKeyName]) ? $meta[$metaKeyName] : (isset($options['default']) ? $options['default'] : null));
+
+					// add field options if this is a multiple input type
+					if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
+						foreach ($options['values'] as $v) {
+							$form->addOption(Custom_Post_Type::get_field_id_name($v), $v);
+						}
+					}
+
+					// set post type and query options for post type fields
+					if (in_array($type, array('posttypes', 'links', 'attachments'))) {
+						$field = $form->getLastField();
+
+						$args = array_merge(array(
+							'metabox' => $metaBoxId, // required for loading fields in post data autocomplete script
+							'metakey' => $fieldName,
+							'hostposttype' => $this->post_type_name,
+						), isset($options['query_args']) ? $options['query_args'] : array());
+
+						$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : $this->post_type_name, $args);
+					}
+				}
+
+				$this->formHandlers[$metaBoxId] = $form;
+			}
+		}
 	}
 
 	public static function get_field_id_name($label)
