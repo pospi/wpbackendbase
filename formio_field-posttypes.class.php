@@ -13,10 +13,10 @@
 
 require_once(FORMIO_FIELDS . 'formio_field-multiple.class.php');
 
-class FormIOField_Posttypes extends FormIOField_Multiple
+class FormIOField_Posttypes extends FormIOField_Autocomplete
 {
-	public $buildString = '<fieldset id="{$id}" class="row multiple posttype col{$columns}{$alt? alt}"{$dependencies? data-fio-depends="$dependencies"}{$validation? data-fio-validation="$validation"}><legend>{$desc}{$required? <span class="required">*</span>}</legend>{$options}{$error?<p class="err">$error</p>}<p class="hint">{$hint}</p></fieldset>';
-	public $subfieldBuildString = '<label><input type="checkbox" name="{$name}[{$value}]"{$disabled? disabled="disabled"}{$checked? checked="checked"} /> <a href="{$editPostUrl}">{$postTitle}</a></label>';
+	const DEFAULT_POST_LIMIT = 30;
+	protected static $DEFAULT_POST_TYPE = 'post';
 
 	protected $results;
 	protected $queryArgs;
@@ -27,22 +27,46 @@ class FormIOField_Posttypes extends FormIOField_Multiple
 
 	protected $optionNum = 0;		// internal counter for associating options with post results by index
 
-	/**
-	 * Sets the post type & arguments to WP_Query for this input's list of options.
-	 * By default, all posts are read.
-	 * @param string $type wordpress post type to read
-	 */
-	public function setQueryArgs($postType = 'post', Array $args)
+	public function __construct($form, $name, $displayText = null, $defaultValue = null)
 	{
-		$args['post_type'] = $postType;
-		$args = array_merge($args, self::$DEFAULT_QUERY_ARGS);
+		parent::__construct($form, $name, $displayText, $defaultValue);
 
-		$this->queryArgs = $args;
-
-		$this->rebuildResults();
+		$this->setMultiple();
 	}
 
-	protected function rebuildResults()
+	/**
+	 * Sets the post type & arguments to WP_Query for this input's list of options.
+	 * By default, 30 posts are read per request.
+	 * @param string $type wordpress post type to read
+	 */
+	public function setQueryArgs($postType, Array $args)
+	{
+		$self = get_class($this);
+
+		if (!isset($postType)) $postType = $self::$DEFAULT_POST_TYPE;
+		$args['post_type'] = $postType;
+		$args = array_merge($args, $self::$DEFAULT_QUERY_ARGS);
+
+		// update autocomplete url to load correct post type
+		$this->updateAutocompleteUrl($args['hostposttype'], $args['metabox'], $args['metakey']);
+		unset($args['hostposttype']);
+		unset($args['metabox']);
+		unset($args['metakey']);
+
+		$this->queryArgs = $args;
+	}
+
+	protected function updateAutocompleteUrl($postType, $metabox, $metakey)
+	{
+		$this->setAutocompleteUrl(plugins_url("pospi_base/posttype-autocomplete.php?pt={$postType}&form={$metabox}&field={$metakey}"));
+	}
+
+	//--------------------------------------------------------------------------
+
+	/**
+	 * Handles a POST request for autocomplete data
+	 */
+	public function runRequest($searchVal)
 	{
 		$qargs = $this->queryArgs;
 
@@ -51,54 +75,21 @@ class FormIOField_Posttypes extends FormIOField_Multiple
 
 		$postIds = array();
 		foreach ($this->results as $post) {
-			$postIds[$post->ID] = $post->post_title;
+			$postResult = array(
+				'label' => $post->post_title,
+				'value' => $post->ID,
+			);
+			$this->addPostTypeVars($postResult, $post);
+
+			$postIds[] = $postResult;
 		}
 
-		$this->setOptions($postIds);
+		return $postIds;
 	}
 
-	//--------------------------------------------------------------------------
-
-	public function getHumanReadableValue()
+	protected function addPostTypeVars(&$vars, $post)
 	{
-		$output = array();
-		$val = $this->getValue();
-		if (is_array($val)) {
-			foreach ($val as $idx => $choice) {
-				if ($choice) {		// this is the only check we need here since unsent checkboxes will not even be set
-					$output[] = $this->options[$idx];
-				}
-			}
-		}
-
-		return implode("\n", $output);
-	}
-
-	protected function getNextOptionVars()
-	{
-		if (!$vars = parent::getNextOptionVars()) {
-			$this->optionNum = 0;
-			return false;
-		}
-
-		$vars['name'] = $this->getName();
-
-		if (isset($this->value[$vars['value']])) {
-			$val = $this->value[$vars['value']];
-			$vars['checked'] = ($val === true || $val === 'on' || $val === 'true' || (is_numeric($val) && $val > 0));
-		}
-
-		$this->addPostTypeVars($vars);
-
-		++$this->optionNum;
-
-		return $vars;
-	}
-
-	protected function addPostTypeVars(&$vars)
-	{
-		$vars['postTitle'] = $this->results[$this->optionNum]->post_title;
-		$vars['editPostUrl'] = $this->results[$this->optionNum]->ID;
+		$vars['editUrl'] = "wp-admin/post.php?action=edit&post=" . $post->ID;
 	}
 }
 ?>

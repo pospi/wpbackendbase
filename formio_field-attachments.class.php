@@ -10,46 +10,48 @@
 
 class FormIOField_Attachments extends FormIOField_Posttypes
 {
-	public $standardBuildString;
-	public $imageFieldBuildString = '<div><a href="{$viewPostUrl}" target="_blank"><img src="{$postThumbUrl}" /></a><label><input type="checkbox" name="{$name}[{$value}]"{$disabled? disabled="disabled"}{$checked? checked="checked"} /></a> <a href="{$editPostUrl}">{$postTitle}</label></div>';
-
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'post_type' => 'attachment',
 		'post_status' => 'inherit',		// needed to query for attachment post types
 		'posts_per_page' => -1,
 	);
 
-	public function __construct($form, $name, $displayText = null, $defaultValue = null)
-	{
-		$this->standardBuildString = $this->subfieldBuildString;
-		parent::__construct($form, $name, $displayText, $defaultValue);
-	}
+	private $isImage = false;
 
-	public function setQueryArgs($attachmentType = 'image', Array $args)
+	public function setQueryArgs($attachmentType = null, Array $args)
 	{
+		$self = get_class($this);
+
 		if (!isset($attachmentType)) $attachmentType = 'image';
 		$args['post_mime_type'] = $attachmentType;
-		$args = array_merge($args, self::$DEFAULT_QUERY_ARGS);
-
-		$this->queryArgs = $args;
+		$args = array_merge($args, $self::$DEFAULT_QUERY_ARGS);
 
 		if ($attachmentType == 'image') {
-			$this->subfieldBuildString = $this->imageFieldBuildString;
+			$this->isImage = true;
+		// 	$this->subfieldBuildString = $this->imageFieldBuildString;
 		} else {
-			$this->subfieldBuildString = $this->standardBuildString;
+			$this->isImage = false;
+		// 	$this->subfieldBuildString = $this->standardBuildString;
 		}
 
-		$this->rebuildResults();
+		// update autocomplete url to load correct post type
+		$this->updateAutocompleteUrl($args['hostposttype'], $args['metabox'], $args['metakey']);
+		unset($args['hostposttype']);
+		unset($args['metabox']);
+		unset($args['metakey']);
+
+		$this->queryArgs = $args;
 	}
 
 	//--------------------------------------------------------------------------
 
-	protected function addPostTypeVars(&$vars)
+	protected function addPostTypeVars(&$vars, $post)
 	{
-		$vars['postTitle'] = $this->results[$this->optionNum]->post_title;
-		$vars['editPostUrl'] = 'wp-admin/media.php?action=edit&attachment_id=' . $this->results[$this->optionNum]->ID;
-		$vars['viewPostUrl'] = wp_get_attachment_url($this->results[$this->optionNum]->ID);
-		$vars['postThumbUrl'] = wp_get_attachment_thumb_url($this->results[$this->optionNum]->ID);
+		$vars['editUrl'] = 'wp-admin/media.php?action=edit&attachment_id=' . $post->ID;
+		$vars['viewUrl'] = wp_get_attachment_url($post->ID);
+		if ($this->isImage) {
+			$vars['thumbUrl'] = wp_get_attachment_thumb_url($post->ID);
+		}
 	}
 }
 ?>

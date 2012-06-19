@@ -10,28 +10,34 @@
 
 class FormIOField_Links extends FormIOField_Posttypes
 {
+	protected static $DEFAULT_POST_TYPE = 'link';
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'limit' => -1,
 	);
 
-	protected function rebuildResults()
+	public function runRequest($searchVal)
 	{
 		$this->results = get_bookmarks($this->queryArgs);
 
 		$postIds = array();
 		foreach ($this->results as $post) {
-			$postIds[$post->link_id] = $post->link_name;
+			$postResult = array(
+				'label' => $post->link_name,
+				'value' => $post->link_id,
+			);
+			$this->addPostTypeVars($postResult, $post);
+
+			$postIds[] = $postResult;
 		}
 
-		$this->setOptions($postIds);
+		return $postIds;
 	}
 
 	//--------------------------------------------------------------------------
 
-	protected function addPostTypeVars(&$vars)
+	protected function addPostTypeVars(&$vars, $link)
 	{
-		$vars['postTitle'] = $this->results[$this->optionNum]->link_name;
-		$vars['editPostUrl'] = $this->results[$this->optionNum]->link_id;
+		$vars['editUrl'] = 'wp-admin/link.php?action=edit&link_id=' . $link->link_id;
 	}
 }
 ?>
