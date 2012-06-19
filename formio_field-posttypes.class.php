@@ -15,15 +15,11 @@ require_once(FORMIO_FIELDS . 'formio_field-multiple.class.php');
 
 class FormIOField_Posttypes extends FormIOField_Autocomplete
 {
-	public $buildString = '<div class="row{$alt? alt}{$classes? $classes}"><label for="{$id}">{$desc}{$required? <span class="required">*</span>}</label><input type="hidden" name="{$name}"{$value? value="$value"} /><input type="text" name="{$friendlyName}" id="{$id}"{$friendlyValue? value="$friendlyValue"}{$maxlen? maxlength="$maxlen"}{$behaviour? data-fio-type="$behaviour"}{$validation? data-fio-validation="$validation"} data-fio-searchurl="{$searchurl}"{$multiple? data-fio-multiple="$multiple"}{$delimiter? data-fio-delimiter="$delimiter"}{$dependencies? data-fio-depends="$dependencies"} />{$error?<p class="err">$error</p>}<p class="hint">{$hint}</p></div>';
-
 	const DEFAULT_POST_LIMIT = 30;
 	protected static $DEFAULT_POST_TYPE = 'post';
 
 	protected $results;
 	protected $queryArgs;
-
-	protected $friendlyValue;	// human readable version of $value (value will mostly be ID lists)
 
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'posts_per_page' => -1,
@@ -39,17 +35,12 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		$this->setMultiple();
 	}
 
-	public function setValue($value)
+	/**
+	 * load post titles in place of IDs for human readable display
+	 */
+	public function getHumanReadableValue()
 	{
-		if (!$value) {
-			return parent::setValue($value);
-		} else if (!is_array($value)) {
-			$value = explode($this->getAttribute('delimiter', self::DEFAULT_DELIM), $value);
-			$value = array_filter($value, function($var) {
-				return $var || $var === '0' || $var === 0;
-			});
-			$value = array_map('trim', $value);
-		}
+		$value = $this->getArrayValue();
 
 		if (!$this->results) {
 			$ids = $this->runRequest(null);
@@ -59,29 +50,10 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		$friendlyValsArr = array();
 
 		foreach ($value as $id) {
-			$friendlyValsArr[] = $ids[$id]['label'];
+			$friendlyValsArr[] = $ids[$id]['name'];
 		}
 
-		$this->friendlyValue = implode($this->getAttribute('delimiter', self::DEFAULT_DELIM), $friendlyValsArr);
-
-		parent::setValue($value);
-	}
-
-	protected function getBuilderVars()
-	{
-		$vars = parent::getBuilderVars();
-
-		$vars['friendlyValue'] = $this->friendlyValue;
-
-		$name = $this->getName();
-		if (substr($name, -1) == ']') {
-			$name = substr($name, 0, strlen($name) - 1) . '_friendly]';
-		} else {
-			$name .= '_friendly';
-		}
-		$vars['friendlyName'] = $name;
-
-		return $vars;
+		return implode($this->getAttribute('delimiter', self::DEFAULT_DELIM), $friendlyValsArr);
 	}
 
 	//--------------------------------------------------------------------------
@@ -149,8 +121,8 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		$postIds = array();
 		foreach ($this->results as $post) {
 			$postResult = array(
-				'label' => $post->post_title,
-				'value' => $post->ID,
+				'name' => $post->post_title,
+				'id' => $post->ID,
 			);
 			$this->addPostTypeVars($postResult, $post);
 

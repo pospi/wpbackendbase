@@ -18,6 +18,13 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 
 	private $isImage = false;
 
+	protected function getBuilderVars()
+	{
+		$vars = parent::getBuilderVars();
+		$vars['behaviour'] = 'posttype_attachment' . ($this->isImage ? '_image' : '');
+		return $vars;
+	}
+
 	public function setQueryArgs($attachmentType = null, Array $args)
 	{
 		$self = get_class($this);

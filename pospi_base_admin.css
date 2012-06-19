@@ -4,9 +4,15 @@
 .clearfix { zoom: 1; }
 
 /*-----------------------------------------------------------------------*/
+/*	formio overrides for wordpress admin theme compatibility */
 
-fieldset.posttype div {
-	float: left;
-	width: 170px;
+.formio label {
+	font-weight: normal;
 }
 
+div.token-input-dropdown ul li.token-input-dropdown-item.img,
+div.token-input-dropdown ul li.token-input-dropdown-item2.img {
+	float: left;
+	text-align: center;
+	width: 160px;
+}

@@ -15,6 +15,13 @@ class FormIOField_Links extends FormIOField_Posttypes
 		'limit' => -1,
 	);
 
+	protected function getBuilderVars()
+	{
+		$vars = parent::getBuilderVars();
+		$vars['behaviour'] = 'posttype_link';
+		return $vars;
+	}
+
 	public function runRequest($searchVal)
 	{
 		global $wpdb;
@@ -33,8 +40,8 @@ class FormIOField_Links extends FormIOField_Posttypes
 		$postIds = array();
 		foreach ($this->results as $post) {
 			$postResult = array(
-				'label' => $post->link_name,
-				'value' => $post->link_id,
+				'name' => $post->link_name,
+				'id' => $post->link_id,
 			);
 			$this->addPostTypeVars($postResult, $post);
 
@@ -49,6 +56,7 @@ class FormIOField_Links extends FormIOField_Posttypes
 	protected function addPostTypeVars(&$vars, $link)
 	{
 		$vars['editUrl'] = 'wp-admin/link.php?action=edit&link_id=' . $link->link_id;
+		$vars['linkUrl'] = $link->link_url;
 	}
 
 	/**
