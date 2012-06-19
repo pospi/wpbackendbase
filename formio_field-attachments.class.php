@@ -28,10 +28,8 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 
 		if ($attachmentType == 'image') {
 			$this->isImage = true;
-		// 	$this->subfieldBuildString = $this->imageFieldBuildString;
 		} else {
 			$this->isImage = false;
-		// 	$this->subfieldBuildString = $this->standardBuildString;
 		}
 
 		// update autocomplete url to load correct post type
