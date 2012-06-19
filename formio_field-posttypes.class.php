@@ -23,6 +23,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'posts_per_page' => -1,
+		'orderby' => 'title',
 	);
 
 	protected $optionNum = 0;		// internal counter for associating options with post results by index
@@ -68,11 +69,32 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 	 */
 	public function runRequest($searchVal)
 	{
-		$qargs = $this->queryArgs;
+		$qargs = array_merge($this->queryArgs, $this->handleSearchInput($searchVal));
 
-		$this->results = new WP_Query($qargs);
-		$this->results = $this->results->posts;
+		$this->prehandleQueryArgs($qargs);
 
+		$q = new WP_Query($qargs);
+		$this->results = $q->posts;
+
+		return $this->handleQueryResults();
+	}
+
+	protected function prehandleQueryArgs(&$qargs)
+	{
+		global $wpdb;
+
+		// handle searches of post title by using an IN query on matching IDs
+		if (isset($qargs['post_title_in'])) {
+			$words = $qargs['post_title_in'];
+			$mypostids = $wpdb->get_col("select ID from $wpdb->posts where post_title LIKE '%". implode("%' OR post_title LIKE '%", $words) ."%'");
+			$qargs['post__in'] = $mypostids;
+
+			unset($qargs['post_title_in']);
+		}
+	}
+
+	protected function handleQueryResults()
+	{
 		$postIds = array();
 		foreach ($this->results as $post) {
 			$postResult = array(
@@ -87,9 +109,27 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		return $postIds;
 	}
 
+	/**
+	 * Add other variables to output with each autocomplete list item
+	 * @param array  &$vars array of item variables to append to
+	 * @param object $post  wordpress post object (or other DB record) being output
+	 */
 	protected function addPostTypeVars(&$vars, $post)
 	{
 		$vars['editUrl'] = "wp-admin/post.php?action=edit&post=" . $post->ID;
 	}
+
+	/**
+	 * Turns the search input string into query arguments for WP_Query
+	 * @param  string $str query string passed
+	 * @return array for merging into WP_Query options
+	 */
+	protected function handleSearchInput($str)
+	{
+		$words = preg_split('/\s+/', trim($str));
+
+		return array(
+			'post_title_in' => $words,
+		);
+	}
 }
-?>

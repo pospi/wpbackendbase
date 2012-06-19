@@ -52,4 +52,3 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 		}
 	}
 }
-?>

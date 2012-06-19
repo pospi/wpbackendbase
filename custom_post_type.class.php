@@ -464,7 +464,7 @@ class Custom_Post_Type
 							'hostposttype' => $this->post_type_name,
 						), isset($options['query_args']) ? $options['query_args'] : array());
 
-						$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : $this->post_type_name, $args);
+						$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : null, $args);
 					}
 				}
 
