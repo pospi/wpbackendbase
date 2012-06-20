@@ -20,3 +20,7 @@ div.token-input-dropdown ul li.token-input-dropdown-item2.img {
 	text-align: center;
 	width: 160px;
 }
+
+li.token-input-input-token {
+	margin-bottom: 0;
+}
