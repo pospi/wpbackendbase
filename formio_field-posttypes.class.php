@@ -41,12 +41,8 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 	public function getHumanReadableValue()
 	{
 		$value = $this->getArrayValue();
+		$ids = $this->forceGetQueryResults();
 
-		if (!$this->results) {
-			$ids = $this->runRequest(null);
-		} else {
-			$ids = $this->handleQueryResults();
-		}
 		$friendlyValsArr = array();
 
 		foreach ($value as $id) {
@@ -54,6 +50,26 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		}
 
 		return implode($this->getAttribute('delimiter', self::DEFAULT_DELIM), $friendlyValsArr);
+	}
+
+	protected function getBuilderVars()
+	{
+		$vars = parent::getBuilderVars();
+
+		// add value metadata for js UIs to read from
+		$internalValue = $this->getArrayValue();
+		if ($internalValue) {
+			$visiblePosts = $this->forceGetQueryResults();
+
+			$extradata = array();
+			foreach ($internalValue as $k => $postId) {
+				$extradata[$k] = $visiblePosts[$postId];
+			}
+
+			$vars['extradata'] = htmlspecialchars(json_encode($extradata));	// allows passing other label data to jquery.tokeninput & other plugins wishing to read it
+		}
+
+		return $vars;
 	}
 
 	//--------------------------------------------------------------------------
@@ -99,7 +115,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		$q = new WP_Query($qargs);
 		$this->results = $q->posts;
 
-		return $this->handleQueryResults();
+		return $this->getQueryResults();
 	}
 
 	protected function prehandleQueryArgs(&$qargs)
@@ -116,7 +132,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		}
 	}
 
-	protected function handleQueryResults()
+	protected function getQueryResults()
 	{
 		$postIds = array();
 		foreach ($this->results as $post) {
@@ -157,5 +173,14 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		return array(
 			'post_title_in' => $words,
 		);
+	}
+
+	private function forceGetQueryResults()
+	{
+		if (!$this->results) {
+			return $this->runRequest(null);
+		} else {
+			return $this->getQueryResults();
+		}
 	}
 }

@@ -32,10 +32,10 @@ class FormIOField_Links extends FormIOField_Posttypes
 
 		$this->results = get_bookmarks($qargs);
 
-		return $this->handleQueryResults();
+		return $this->getQueryResults();
 	}
 
-	protected function handleQueryResults()
+	protected function getQueryResults()
 	{
 		$postIds = array();
 		foreach ($this->results as $post) {
