@@ -4,9 +4,12 @@
 .clearfix { zoom: 1; }
 
 /*-----------------------------------------------------------------------*/
-/*	formio overrides for wordpress admin theme compatibility */
+/* formio overrides & extensions for wordpress admin theme compatibility */
 
 .formio label {
+	font-weight: normal;
+}
+.formio ul.token-input-list li p {
 	font-weight: normal;
 }
 
@@ -14,8 +17,10 @@
 	border: 1px solid #D1E5EE;
 }
 
+
 div.token-input-dropdown ul li.token-input-dropdown-item.img,
-div.token-input-dropdown ul li.token-input-dropdown-item2.img {
+div.token-input-dropdown ul li.token-input-dropdown-item2.img,
+ul.token-input-list li.img {
 	float: left;
 	text-align: center;
 	width: 160px;
@@ -23,4 +28,30 @@ div.token-input-dropdown ul li.token-input-dropdown-item2.img {
 
 li.token-input-input-token {
 	margin-bottom: 0;
+}
+
+ul.token-input-list li.img {
+	position: relative;
+	line-height: 1.5em;
+}
+
+ul.token-input-list li.img p {
+	float: none;
+	text-align: center;
+}
+
+ul.token-input-list li div {
+	height: 60px;
+	overflow: hidden;
+}
+
+ul.token-input-list li div img {
+	display: block;
+	margin: -45px auto 0.3em 3px;
+}
+
+li.token-input-token.img .token-input-delete-token {
+	position: absolute;
+	top: 1px;
+	right: 2px;
 }

@@ -8,22 +8,34 @@
 			setupRoutines : {
 				"[data-fio-type='posttype_attachment']" : function(el) {
 					FormIO.prototype.initAutoCompleteField.call(this, el, {
+						preventDuplicates : true,
 						resultsFormatter : function(item) {
-							return "<li>" + item.name + " <sub>(<a href=\"" + item.editUrl + "\">edit</a> | <a href=\"" + item.viewUrl + "\">view</a>)</sub></li>";
+							return "<li>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></li>";
+						},
+						tokenFormatter : function(item) {
+							return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></p></li>";
 						}
 					});
 				},
 				"[data-fio-type='posttype_attachment_image']" : function(el) {
 					FormIO.prototype.initAutoCompleteField.call(this, el, {
+						preventDuplicates : true,
 						resultsFormatter : function(item) {
-							return "<li class=\"img\"><img src=\"" + item.thumbUrl + "\" />" + item.name + " <sub>(<a href=\"" + item.editUrl + "\">edit</a> | <a href=\"" + item.viewUrl + "\">view</a>)</sub></li>";
+							return "<li class=\"img\"><img src=\"" + item.thumbUrl + "\" />" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></li>";
+						},
+						tokenFormatter : function(item) {
+							return "<li class=\"img\"><div><img src=\"" + item.thumbUrl + "\" /></div><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></p></li>";
 						}
 					});
 				},
 				"[data-fio-type='posttype_link']" : function(el) {
 					FormIO.prototype.initAutoCompleteField.call(this, el, {
+						preventDuplicates : true,
 						resultsFormatter : function(item) {
-							return "<li>" + item.name + " <sub>(<a href=\"" + item.editUrl + "\">edit</a> | <a href=\"" + item.linkUrl + "\">open</a>)</sub></li>";
+							return "<li>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.linkUrl + "\">open</a>)</sub></li>";
+						},
+						tokenFormatter : function(item) {
+							return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.linkUrl + "\">open</a>)</sub></p></li>";
 						}
 					});
 				}
