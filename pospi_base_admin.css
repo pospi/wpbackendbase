@@ -10,6 +10,10 @@
 	font-weight: normal;
 }
 
+.postbox.formio {
+	border: 1px solid #D1E5EE;
+}
+
 div.token-input-dropdown ul li.token-input-dropdown-item.img,
 div.token-input-dropdown ul li.token-input-dropdown-item2.img {
 	float: left;
