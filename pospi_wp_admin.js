@@ -1,7 +1,10 @@
 (function($) {
 	$(function() {
-		// init formIO for our metabox fields
+		// find our metaboxs
 		var metaboxes = $('input[name=custom_post_type]').parent();
+
+		// add img class to formIO image input parents to allow separate styling of actual tokeninput input
+		$('li.img.token-input-token').closest('token-input-list').addClass('img');
 
 		// init form UI javascript
 		metaboxes.closest('form').formio({
@@ -41,5 +44,23 @@
 				}
 			}
 		});
+
+		// load parallax preview of image attachments
+		initThumbParallax($('ul.token-input-list li.img img'), $('ul.token-input-list li.img div'));
 	});
+
+	//--------------------------------------------------------------------------
+	// helpers
+	//--------------------------------------------------------------------------
+
+	function initThumbParallax(els, mouseports) {
+		els.each(function(i) {
+			$(this).parallax({
+				xparallax: false,
+				yparallax: -1,
+				mouseport: mouseports.get(i)
+			});
+		});
+	}
+
 })(jQuery);

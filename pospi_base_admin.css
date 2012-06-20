@@ -42,12 +42,14 @@ ul.token-input-list li.img p {
 
 ul.token-input-list li div {
 	height: 60px;
+	position: relative;
 	overflow: hidden;
 }
 
 ul.token-input-list li div img {
+	position: absolute;
 	display: block;
-	margin: -45px auto 0.3em 3px;
+	top: -45px;
 }
 
 li.token-input-token.img .token-input-delete-token {

@@ -22,12 +22,17 @@ require_once(POSPI_PLUGIN_BASE . "/formio_field-attachments.class.php");
 add_action('admin_enqueue_scripts',function(){
 	// wp_register_script("jquery","https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js",array(),"1.6.4");
 	// wp_enqueue_script("jquery");
-	wp_register_script("jquery_ui","http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js",array(),"1.8.18");
+	wp_register_script("jquery_ui","http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js",array('jquery'),"1.8.18");
 	wp_enqueue_script("jquery_ui");
 	wp_register_script("jquery_tokeninput", includes_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jquery_ui'), '1.6.0');
 	wp_enqueue_script("jquery_tokeninput");
 	wp_register_script('formio', includes_url('formio/formio.js', __FILE__), array('jquery_tokeninput'));
 	wp_enqueue_script('formio');
+
+	wp_register_script('jquery.event.frame', includes_url('jparallax/js/jquery.event.frame.js', __FILE__), array('jquery'));
+	wp_enqueue_script('jquery.event.frame');
+	wp_register_script('jparallax', includes_url('jparallax/js/jquery.parallax.js', __FILE__), array('jquery.event.frame'));
+	wp_enqueue_script('jparallax');
 
 	wp_register_script('site-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio'));
 	wp_enqueue_script('site-admin-js');
