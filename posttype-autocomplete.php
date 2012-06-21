@@ -5,6 +5,7 @@
  * @author Sam Pospischil <pospi@spadgos.com>
  */
 
+// boot up wordpress in admin mode with all plugins
 require('../../../wp-load.php');
 require('../../../wp-admin/includes/admin.php');
 do_action('admin_init');

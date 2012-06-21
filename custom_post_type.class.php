@@ -58,8 +58,8 @@ class Custom_Post_Type
 	public function register_post_type()
 	{
 		//Capitilize the words and make it plural
-		$name 		= ucfirst( str_replace( '_', ' ', $this->post_type_name ) );
-		$plural 	= ucfirst( str_replace( '_', ' ', isset($this->post_type_name_plural) ? $this->post_type_name_plural : $name . 's') );
+		$name 	= $this->get_friendly_name();
+		$plural = $this->get_friendly_name(true);
 
 		// We set the default labels based on the post type name and plural. We overwrite them with the given labels.
 		$labels = array_merge(
@@ -485,6 +485,15 @@ class Custom_Post_Type
 				$this->formHandlers[$metaBoxId] = $form;
 			}
 		}
+	}
+
+	public function get_friendly_name($plural = false)
+	{
+		$name = ucfirst( str_replace( '_', ' ', $this->post_type_name ) );
+		if ($plural) {
+			return ucfirst( str_replace( '_', ' ', isset($this->post_type_name_plural) ? $this->post_type_name_plural : $name . 's') );
+		}
+		return $name;
 	}
 
 	public static function get_field_id_name($label)
