@@ -13,7 +13,6 @@ class Custom_Post_Type
 	public $post_type_name;
 	public $post_type_name_plural;
 	public $post_type_args;
-	public $post_type_labels;
 
 	public $meta_fields = array();
 	public $taxonomies = array();
@@ -23,7 +22,7 @@ class Custom_Post_Type
 	private static $postTypeRegister = array();
 
 	/* Class constructor */
-	public function __construct( $name, $args = array(), $labels = array() )
+	public function __construct( $name, $args = array() )
 	{
 		// Set some important variables
 		if (is_array($name)) {
@@ -33,7 +32,6 @@ class Custom_Post_Type
 			$this->post_type_name		= strtolower( str_replace( ' ', '_', $name ) );
 		}
 		$this->post_type_args 		= $args;
-		$this->post_type_labels 	= $labels;
 
 		// Add action to register the post type, if the post type doesnt exist
 		if (function_exists('post_type_exists')) {
@@ -82,7 +80,7 @@ class Custom_Post_Type
 			),
 
 			// Given labels
-			$this->post_type_labels
+			isset($this->post_type_args['labels']) ? $this->post_type_args['labels'] : array()
 
 		);
 
@@ -94,15 +92,15 @@ class Custom_Post_Type
 				'label' 				=> $plural,
 				'labels' 				=> $labels,
 				'public' 				=> true,
-				'publicly_queryable' => true,
+				// 'publicly_queryable' => true,	// these all default to the setting of 'public'
+				// 'show_ui' 				=> true,
+				// 'show_in_nav_menus' 	=> true,
+				// 'show_in_menu'		=> true,
+				'menu_position'		=> 15,
 				'query_var'			=> true,
 				'rewrite'			=> true,
-				'show_ui' 				=> true,
-				'supports' 				=> array( 'title', 'editor' ),
-				'show_in_menu'		=> true,
-				'show_in_nav_menus' 	=> true,
-				'menu_position'		=> 15,
-				'_builtin' 				=> false,
+				'supports' 			=> array( 'title', 'editor' ),
+				'_builtin' 			=> false,
 
 				'hierarchical'		=> false,
 			),
