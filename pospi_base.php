@@ -12,7 +12,7 @@ License: MIT
 //Setup some secondary variable "constants"
 define('POSPI_PLUGIN_BASE', dirname(__FILE__));
 
-require_once("lib/formio/form_io.class.php");		// :TODO: import as submodule... change all includes_urls to plugin ones
+require_once(POSPI_PLUGIN_BASE . "/formio/form_io.class.php");
 require_once(POSPI_PLUGIN_BASE . "/custom_post_type.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-posttypes.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-links.class.php");
@@ -24,9 +24,9 @@ add_action('admin_enqueue_scripts',function(){
 	// wp_enqueue_script("jquery");
 	wp_register_script("jquery_ui","http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js",array('jquery'),"1.8.18");
 	wp_enqueue_script("jquery_ui");
-	wp_register_script("jquery_tokeninput", includes_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jquery_ui'), '1.6.0');
+	wp_register_script("jquery_tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jquery_ui'), '1.6.0');
 	wp_enqueue_script("jquery_tokeninput");
-	wp_register_script('formio', includes_url('formio/formio.js', __FILE__), array('jquery_tokeninput'));
+	wp_register_script('formio', plugins_url('formio/formio.js', __FILE__), array('jquery_tokeninput'));
 	wp_enqueue_script('formio');
 
 	wp_register_script('jquery.event.frame', includes_url('jparallax/js/jquery.event.frame.js', __FILE__), array('jquery'));
@@ -42,9 +42,9 @@ add_action('admin_enqueue_scripts',function(){
 add_action( 'admin_init', function() {
 	wp_register_style('jquery_ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css');
 	wp_enqueue_style('jquery_ui');
-	wp_register_style('jquery_tokeninput', includes_url('formio/lib/jquery-tokeninput/styles/token-input.css', __FILE__));
+	wp_register_style('jquery_tokeninput', plugins_url('formio/lib/jquery-tokeninput/styles/token-input.css', __FILE__));
 	wp_enqueue_style('jquery_tokeninput');
-    wp_register_style('formio_css', includes_url('formio/formio.css', __FILE__));
+    wp_register_style('formio_css', plugins_url('formio/formio.css', __FILE__));
     wp_enqueue_style('formio_css');
 
     wp_register_style('pospi_admin_base_css', plugins_url('pospi_base_admin.css', __FILE__));
