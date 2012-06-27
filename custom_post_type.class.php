@@ -486,6 +486,13 @@ class Custom_Post_Type
 			}
 		}
 
+		// set any dependencies present
+		if (isset($options['dependencies'])) {
+			foreach ($options['dependencies'] as $expectedVal => $visibleField) {
+				$field->addDependency($expectedVal, $visibleField);
+			}
+		}
+
 		// set field to required if desired
 		if (!empty($options['required'])) {
 			$field->setRequired();
