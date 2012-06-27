@@ -136,8 +136,10 @@ class Custom_Post_Type
 
 		// register all metaboxes from the superclass with our own
 		$superClass = self::get_post_type($superPostTypeName);
-		foreach ($superClass->meta_fields as $title => $fields) {
-			$this->add_meta_box($title, $fields);
+		if ($superClass->meta_fields) {
+			foreach ($superClass->meta_fields as $title => $fields) {
+				$this->add_meta_box($title, $fields);
+			}
 		}
 	}
 
