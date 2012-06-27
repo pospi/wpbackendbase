@@ -256,7 +256,7 @@ class Custom_Post_Type
 							wp_nonce_field( plugin_basename( __FILE__ ), 'custom_post_type' );
 
 							// draw the box's inputs
-							$that->get_metabox_form_output($metaBoxId, $meta);
+							$that->get_metabox_form_output($metaBoxId, $meta, $post);
 						},
 						$post_type_name,
 						$box_context,
@@ -406,12 +406,12 @@ class Custom_Post_Type
 		return $fields;
 	}
 
-	public function get_metabox_form_output($boxName, Array $meta = null)
+	public function get_metabox_form_output($boxName, Array $meta = null, $post = null)
 	{
 		$metaBoxId = self::get_field_id_name($boxName);
 
 		if ($meta || !isset($this->formHandlers[$metaBoxId])) {		// ensure form handler is created and initialised with the correct values for the passed metadata
-			$this->init_form_handlers($meta, true);
+			$this->init_form_handlers($meta, $post, true);
 		}
 
 
@@ -424,10 +424,10 @@ class Custom_Post_Type
 	 * @see posttype-autocomplete.php
 	 *
 	 * @param	array $meta		input metadata to prefill the form with. This will be a flat array concatenated with get_field_id_name().
-	 * @param	bool  $draw		if true, forms will be output for the inputs as created. This is mainly a speed / convenience flag, you could always iterate these yourself afterwards.
+	 * @param	bool  $postId	the post the form is being loaded for
 	 * @param	bool  $force	if true, form handlers will be recreated even if already loaded
 	 */
-	public function init_form_handlers(Array $meta = null, $force = false)
+	public function init_form_handlers(Array $meta = null, $post = null, $force = false)
 	{
 		if (!isset($meta)) $meta = array();
 
@@ -454,23 +454,7 @@ class Custom_Post_Type
 					$form->addField($fieldName, $label, $type);
 					$field = $form->getLastField();
 
-					// add field options if this is a multiple input type
-					if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
-						foreach ($options['values'] as $v) {
-							$form->addOption(Custom_Post_Type::get_field_id_name($v), $v);
-						}
-					}
-
-					// set post type and query options for post type fields
-					if (in_array($type, array('posttypes', 'links', 'attachments'))) {
-						$args = array_merge(array(
-							'metabox' => $metaBoxId, // required for loading fields in post data autocomplete script
-							'metakey' => $fieldName,
-							'hostposttype' => $this->post_type_name,
-						), isset($options['query_args']) ? $options['query_args'] : array());
-
-						$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : null, $args);
-					}
+					$this->handleMetaboxConfig($type, $options, $field, $post, $meta);
 
 					// set default value (:WARNING: must be done after calling setQueryArgs() due to post title lookups for prefilling the list's values)
 					if (isset($meta[$metaKeyName])) {
@@ -482,6 +466,75 @@ class Custom_Post_Type
 
 				$this->formHandlers[$metaBoxId] = $form;
 			}
+		}
+	}
+
+	/**
+	 * Digests input field definitions to add_meta_box and creates FormIO fields for managing them
+	 * @param  string 		$type  input type being created
+	 * @param  array		$options	options for the field
+	 * @param  FormIO_Field	$field  FormIO field being created
+	 * @param  bool			$postId	the post the form is being loaded for
+	 * @param  array		$meta  loaded metadata array from the post we're displaying
+	 */
+	protected function handleMetaboxConfig($type, $options, $field, $post, $meta)
+	{
+		// set any field validators that need setting
+		if (isset($options['validators'])) {
+			foreach ($options['validators'] as $validator => $valArgs) {
+				$field->addValidator($validator, is_array($valArgs) ? $valArgs : array($valArgs));
+			}
+		}
+
+		// set field to required if desired
+		if (!empty($options['required'])) {
+			$field->setRequired();
+		}
+
+		// add field hints
+		if (!empty($options['hint'])) {
+			$field->setAttribute('hint', $options['hint']);
+		}
+
+		// add field options if this is a multiple input type
+		if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
+			foreach ($options['values'] as $v) {
+				$field->setOption(self::get_field_id_name($v), $v);
+			}
+		}
+
+		// add subfields for group inputs
+		else if ($type == 'group') {
+			foreach ($options['fields'] as $name => $f) {
+				if (is_array($f)) {
+					list($f, $subOpts) = $f;
+				} else {
+					$subOpts = array();
+				}
+				$subField = $field->createSubField($f, self::get_field_id_name($name), $name);
+
+				$this->handleMetaboxConfig($f, $subOpts, $subField, $post, $meta);
+			}
+		}
+
+		// set post type and query options for post type fields
+		else if (in_array($type, array('posttypes', 'links', 'attachments'))) {
+			// handle query arg callbacks
+			if ($options['query_args'] instanceof Closure) {
+				$args = $options['query_args'];
+				$args = $args($post, $meta);
+			} else {
+				$args = isset($options['query_args']) ? $options['query_args'] : array();
+			}
+
+			// merge in metadata used to identify this field for its autocomplete data
+			$args = array_merge(array(
+				'metabox' => $metaBoxId, // required for loading fields in post data autocomplete script
+				'metakey' => $fieldName,
+				'hostposttype' => $this->post_type_name,
+			), $args);
+
+			$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : null, $args);
 		}
 	}
 
