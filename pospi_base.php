@@ -9,7 +9,6 @@ Author URI: http://pospi.spadgos.com
 License: MIT
 */
 
-//Setup some secondary variable "constants"
 define('POSPI_PLUGIN_BASE', dirname(__FILE__));
 
 require_once(POSPI_PLUGIN_BASE . "/formio/form_io.class.php");
@@ -18,7 +17,7 @@ require_once(POSPI_PLUGIN_BASE . "/formio_field-posttypes.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-links.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-attachments.class.php");
 
-//Custom Javascript
+// Custom Javascript
 add_action('admin_enqueue_scripts',function(){
 	// wp_register_script("jquery","https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js",array(),"1.6.4");
 	// wp_enqueue_script("jquery");
@@ -38,7 +37,7 @@ add_action('admin_enqueue_scripts',function(){
 	wp_enqueue_script('site-admin-js');
 });
 
-//Custom Css
+// Custom Css
 add_action( 'admin_init', function() {
 	wp_register_style('jquery_ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css');
 	wp_enqueue_style('jquery_ui');
@@ -55,3 +54,9 @@ add_action( 'admin_init', function() {
 register_activation_hook(__FILE__, function(){
     flush_rewrite_rules();
 });
+
+// fire an event when we're done loading so that other plugins can load as dependencies
+function pospi_base_loaded() {
+    do_action('pospi_base_loaded');
+}
+add_action('plugins_loaded', 'pospi_base_loaded');
