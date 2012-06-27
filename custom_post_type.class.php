@@ -13,16 +13,18 @@ class Custom_Post_Type
 	public $post_type_name;
 	public $post_type_name_plural;
 	public $post_type_args;
+	public $post_type_superclass;
 
 	public $meta_fields = array();
 	public $taxonomies = array();
 
 	public $formHandlers = array();	// FormIO instances used to render and validate each metabox
 
-	private static $postTypeRegister = array();
+	private static $postTypeRegister = array();	// all post types created, used to load them for record save / load handling
+
 
 	/* Class constructor */
-	public function __construct( $name, $args = array() )
+	public function __construct( $name, $args = array(), $superClass = null )
 	{
 		// Set some important variables
 		if (is_array($name)) {
@@ -31,7 +33,11 @@ class Custom_Post_Type
 		} else {
 			$this->post_type_name		= strtolower( str_replace( ' ', '_', $name ) );
 		}
-		$this->post_type_args 		= $args;
+		$this->post_type_args = $args;
+
+		if ($superClass) {
+			$this->setSuperclass($superClass);
+		}
 
 		// Add action to register the post type, if the post type doesnt exist
 		if (function_exists('post_type_exists')) {
@@ -115,6 +121,23 @@ class Custom_Post_Type
 			register_post_type( $this->post_type_name, $args );
 		} else {
 			WP_Core::register_post_type( $this->post_type_name, $args );
+		}
+	}
+
+	/**
+	 * Enables post type inheritance whilst being able to manipulate and view
+	 * child post types from within their parent lists.
+	 * :NOTE: that once set, superclass metadata cannot be removed as it will
+	 * 		  already have been hooked into wordpress
+	 */
+	private function setSuperclass($superPostTypeName)
+	{
+		$this->post_type_superclass = $superPostTypeName;
+
+		// register all metaboxes from the superclass with our own
+		$superClass = self::get_post_type($superPostTypeName);
+		foreach ($superClass->meta_fields as $title => $fields) {
+			$this->add_meta_box($title, $fields);
 		}
 	}
 
@@ -328,6 +351,12 @@ class Custom_Post_Type
 			}
 		}
 
+		// load superclass taxonomies and merge our data on top, if present
+		if ($this->post_type_superclass) {
+			$superType = self::get_post_type($this->post_type_superclass);
+			return array_merge($superType->get_post_terms($postId), $taxonomies);
+		}
+
 		return $taxonomies;
 	}
 
@@ -371,6 +400,12 @@ class Custom_Post_Type
 			}
 		}
 
+		// load superclass metadata and merge our data on top, if present
+		if ($this->post_type_superclass) {
+			$superType = self::get_post_type($this->post_type_superclass);
+			return array_merge($superType->get_post_meta($postId), $postMeta);
+		}
+
 		return $postMeta;
 	}
 
@@ -391,6 +426,12 @@ class Custom_Post_Type
 				update_post_meta($postId, $field_id_name, isset($metaFields[$field_id_name]) ? $metaFields[$field_id_name] : null);
 			}
 		}
+
+		// save superclass metadata and merge our data on top, if present
+		if ($this->post_type_superclass) {
+			$superType = self::get_post_type($this->post_type_superclass);
+			$superType->update_post_meta($postId, $metaFields);
+		}
 	}
 
 	public function get_post_meta_fields()
@@ -403,6 +444,12 @@ class Custom_Post_Type
 			}
 		}
 
+		// read superclass field names as well if present
+		if ($this->post_type_superclass) {
+			$superType = self::get_post_type($this->post_type_superclass);
+			return array_merge($superType->get_post_meta_fields(), $fields);
+		}
+
 		return $fields;
 	}
 
@@ -413,7 +460,6 @@ class Custom_Post_Type
 		if ($meta || !isset($this->formHandlers[$metaBoxId])) {		// ensure form handler is created and initialised with the correct values for the passed metadata
 			$this->init_form_handlers($meta, $post, true);
 		}
-
 
 		echo $this->formHandlers[$metaBoxId]->getFieldsHTML();
 	}
@@ -466,6 +512,12 @@ class Custom_Post_Type
 
 				$this->formHandlers[$metaBoxId] = $form;
 			}
+		}
+
+		// process superclass as well
+		if ($this->post_type_superclass) {
+			$superType = self::get_post_type($this->post_type_superclass);
+			$superType->init_form_handlers($meta, $post, $force);
 		}
 	}
 
