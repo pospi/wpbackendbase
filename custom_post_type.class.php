@@ -505,7 +505,7 @@ class Custom_Post_Type
 					$this->handleMetaboxConfig($type, $options, $field, $post, $meta);
 
 					// set default value (:WARNING: must be done after calling setQueryArgs() due to post title lookups for prefilling the list's values)
-					if (isset($meta[$metaKeyName])) {
+					if (isset($meta[$metaKeyName]) && $field instanceof FormIOField_Text) {
 						$field->setValue($meta[$metaKeyName]);
 					} else if (isset($options['default'])) {
 						$field->setValue($options['default']);
