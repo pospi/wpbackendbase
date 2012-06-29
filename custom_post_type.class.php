@@ -502,7 +502,7 @@ class Custom_Post_Type
 					$form->addField($fieldName, $label, $type);
 					$field = $form->getLastField();
 
-					$this->handleMetaboxConfig($type, $options, $field, $post, $meta);
+					$this->handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName);
 
 					// set default value (:WARNING: must be done after calling setQueryArgs() due to post title lookups for prefilling the list's values)
 					if (isset($meta[$metaKeyName]) && $field instanceof FormIOField_Text) {
@@ -531,7 +531,7 @@ class Custom_Post_Type
 	 * @param  bool			$postId	the post the form is being loaded for
 	 * @param  array		$meta  loaded metadata array from the post we're displaying
 	 */
-	protected function handleMetaboxConfig($type, $options, $field, $post, $meta)
+	protected function handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName)
 	{
 		// set any field validators that need setting
 		if (isset($options['validators'])) {
