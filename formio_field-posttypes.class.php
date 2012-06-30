@@ -155,7 +155,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 	 */
 	protected function addPostTypeVars(&$vars, $post)
 	{
-		$vars['editUrl'] = "wp-admin/post.php?action=edit&post=" . $post->ID;
+		$vars['editUrl'] = "post.php?action=edit&post=" . $post->ID;
 	}
 
 	/**

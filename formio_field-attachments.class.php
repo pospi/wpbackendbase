@@ -52,7 +52,7 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 
 	protected function addPostTypeVars(&$vars, $post)
 	{
-		$vars['editUrl'] = 'wp-admin/media.php?action=edit&attachment_id=' . $post->ID;
+		$vars['editUrl'] = 'media.php?action=edit&attachment_id=' . $post->ID;
 		$vars['viewUrl'] = wp_get_attachment_url($post->ID);
 		if ($this->isImage) {
 			$vars['thumbUrl'] = wp_get_attachment_thumb_url($post->ID);

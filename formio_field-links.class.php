@@ -55,7 +55,7 @@ class FormIOField_Links extends FormIOField_Posttypes
 
 	protected function addPostTypeVars(&$vars, $link)
 	{
-		$vars['editUrl'] = 'wp-admin/link.php?action=edit&link_id=' . $link->link_id;
+		$vars['editUrl'] = 'link.php?action=edit&link_id=' . $link->link_id;
 		$vars['linkUrl'] = $link->link_url;
 	}
 
