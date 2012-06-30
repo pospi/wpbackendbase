@@ -574,7 +574,7 @@ class Custom_Post_Type
 				}
 				$subField = $field->createSubField($f, self::get_field_id_name($name), $name);
 
-				$this->handleMetaboxConfig($f, $subOpts, $subField, $post, $meta);
+				$this->handleMetaboxConfig($f, $subOpts, $subField, $post, $meta, $metaBoxId, $fieldName);
 			}
 		}
 
