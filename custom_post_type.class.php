@@ -20,6 +20,8 @@ class Custom_Post_Type
 
 	public $formHandlers = array();	// FormIO instances used to render and validate each metabox
 
+	private $saveCallbacks = array();	// user-defined callbacks for prehandling post metadata before it is saved
+
 	private static $postTypeRegister = array();	// all post types created, used to load them for record save / load handling
 
 
@@ -300,6 +302,16 @@ class Custom_Post_Type
 
 	}
 
+	/**
+	 * Add a custom callback to be called when records of this type are saved.
+	 * The callback accepts the ID of the post being saved, the post's metadata
+	 * array and the Custom_Post_Type instance as parameters.
+	 */
+	public function add_save_handler($callback)
+	{
+		$this->saveCallbacks[] = $callback;
+	}
+
 	/* Listens for when the post type being saved */
 	public function save()
 	{
@@ -320,7 +332,7 @@ class Custom_Post_Type
 				if ( isset($_POST['custom_post_type']) && ! wp_verify_nonce( $_POST['custom_post_type'], plugin_basename(__FILE__) ) ) return;
 
 				if( isset( $_POST['custom_meta'] ) && $postId && get_post_type($postId) == $post_type_name ) {
-					$that->update_post_meta($postId, $_POST['custom_meta']);
+					$that->update_post_meta($postId, $that->prehandlePostMeta($postId, $_POST['custom_meta']));
 				}
 			}
 		);
@@ -434,6 +446,17 @@ class Custom_Post_Type
 			$superType = self::get_post_type($this->post_type_superclass);
 			$superType->update_post_meta($postId, $metaFields);
 		}
+	}
+
+	private function prehandlePostMeta($postId, $metaFields)
+	{
+		if (!count($this->saveCallbacks)) {
+			return $metaFields;
+		}
+		foreach ($this->saveCallbacks as $cb) {
+			$metaFields = call_user_func($cb, $postId, $metaFields, $this);
+		}
+		return $metaFields;
 	}
 
 	public function get_post_meta_fields()
