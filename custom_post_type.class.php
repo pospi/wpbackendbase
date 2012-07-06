@@ -624,6 +624,10 @@ class Custom_Post_Type
 			), $args);
 
 			$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : null, $args);
+
+			if (!empty($options['single'])) {
+				$field->setSingle();
+			}
 		}
 	}
 
