@@ -33,8 +33,8 @@ add_action('admin_enqueue_scripts',function(){
 	wp_register_script('jparallax', includes_url('jparallax/js/jquery.parallax.js', __FILE__), array('jquery.event.frame'));
 	wp_enqueue_script('jparallax');
 
-	wp_register_script('site-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio'));
-	wp_enqueue_script('site-admin-js');
+	wp_register_script('pospi-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio'));
+	wp_enqueue_script('pospi-admin-js');
 });
 
 // Custom Css
