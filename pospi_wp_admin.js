@@ -6,6 +6,14 @@
 		// add img class to formIO image input parents to allow separate styling of actual tokeninput input
 		$('li.img.token-input-token').closest('token-input-list').addClass('img');
 
+		// override form field name retriever to use custom_meta instead of #post (which it has to be in wordpress)
+		FormIO.prototype.getFieldId = function(fldname) {
+			return 'custom_meta_' + fldname.replace(/\[/g, '_').replace(/\]/g, '');
+		};
+		FormIO.prototype.getFieldName = function(fldId) {
+			return fldId.replace(new RegExp('^custom_meta_'), '');
+		};
+
 		// init form UI javascript
 		metaboxes.closest('form').formio({
 			setupRoutines : {
