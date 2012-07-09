@@ -24,6 +24,8 @@ class Custom_Post_Type
 
 	private static $postTypeRegister = array();	// all post types created, used to load them for record save / load handling
 
+	// wordpress hooks to use. Overridden in some builtin cases when managing core WP datatypes.
+	private $saveHooks = array('save_post');
 
 	/* Class constructor */
 	public function __construct( $name, $args = array(), $superClass = null )
@@ -43,14 +45,19 @@ class Custom_Post_Type
 
 		// Add action to register the post type, if the post type doesnt exist
 		if (function_exists('post_type_exists')) {
-			if( ! post_type_exists( $this->post_type_name ) )
+			if( $this->post_type_name != 'user' && ! post_type_exists( $this->post_type_name ) )
 			{
 				add_action( 'init', array( &$this, 'register_post_type' ) );
 			}
 		} else {
-			if (!WP_Core::post_type_exists( $this->post_type_name ) ) {
+			if ($this->post_type_name != 'user' && !WP_Core::post_type_exists( $this->post_type_name ) ) {
 				$this->register_post_type();
 			}
+		}
+
+		// override some values when managing user metadata
+		if ($this->post_type_name == 'user') {
+			$this->saveHooks = array('personal_options_update', 'edit_user_profile_update');
 		}
 
 		// Listen for the save post hook
@@ -271,8 +278,8 @@ class Custom_Post_Type
 			$that = $this;
 
 			// output the metabox for our post type on the admin screen
-			add_action( 'admin_init',
-				function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields, $that )
+			if ($this->post_type_name != 'user') {
+				add_action('admin_init', function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields, $that )
 				{
 					add_meta_box(
 						$box_id,
@@ -295,8 +302,25 @@ class Custom_Post_Type
 						$box_priority,
 						array( $fields )
 					);
-				}
-			);
+				});
+			} else {
+				$metaboxDrawCb = function($user) use ($box_id, $box_title, $that) {
+					// Write a nonce field for some validation
+					wp_nonce_field(plugin_basename( __FILE__ ), 'custom_post_type');
+
+					echo '<h3>' . $box_title . '</h3><div class="formio">';
+
+					// Get the saved values
+					$meta = $that->get_post_meta( $user->ID );
+
+					// draw the box's inputs
+					$that->get_metabox_form_output($box_id, $meta, $user);
+
+					echo '</div>';
+				};
+				add_action('show_user_profile', $metaboxDrawCb);
+				add_action('edit_user_profile', $metaboxDrawCb);
+			}
 
 			// also set the metabox's class for formIO input styling
 			add_filter("postbox_classes_{$post_type_name}_{$box_id}", function($metaboxClasses) {
@@ -328,19 +352,19 @@ class Custom_Post_Type
 		$post_type_name = $this->post_type_name;
 
 		$that = $this;
-		add_action( 'save_post',
-			function($postId) use( $that, $post_type_name )
+		foreach ($this->saveHooks as $hook) {
+			add_action($hook, function($postId) use( $that, $post_type_name )
 			{
-				// Deny the wordpress autosave function
-				if( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
+				// If doing the wordpress autosave function, ignore...
+				if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 
 				if ( isset($_POST['custom_post_type']) && ! wp_verify_nonce( $_POST['custom_post_type'], plugin_basename(__FILE__) ) ) return;
 
-				if( isset( $_POST['custom_meta'] ) && $postId && get_post_type($postId) == $post_type_name ) {
-					$that->update_post_meta($postId, $that->prehandlePostMeta($postId, $_POST['custom_meta']));
+				if( isset( $_POST['custom_meta'] ) && $postId && ((get_post_type($postId) == $post_type_name) || (get_post_type($postId) === false && $post_type_name == 'user')) ) {
+					$that->update_post_meta($postId, $_POST['custom_meta']);
 				}
-			}
-		);
+			});
+		}
 	}
 
 	/**
@@ -387,9 +411,9 @@ class Custom_Post_Type
 	{
 		// get all metadata for this post
 		if (function_exists('get_post_custom')) {
-			$meta = get_post_custom( $postId );
+			$meta = $this->post_type_name != 'user' ? get_post_custom( $postId ) : get_user_meta($postId);
 		} else {
-			$meta = WP_Core::get_post_custom( $postId );
+			$meta = $this->post_type_name != 'user' ? WP_Core::get_post_custom( $postId ) : WP_Core::get_user_meta($postId);
 		}
 
 		$ourMeta = array();
@@ -436,13 +460,19 @@ class Custom_Post_Type
 	 */
 	public function update_post_meta($postId, Array $metaFields)
 	{
+		$metaFields = $this->prehandlePostMeta($postId, $metaFields);
+
 		// Loop through each meta box
 		foreach ($this->meta_fields as $title => $fields) {
 			// Loop through all fields
 			foreach ($fields as $label => $type) {
 				$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
 
-				update_post_meta($postId, $field_id_name, isset($metaFields[$field_id_name]) ? $metaFields[$field_id_name] : null);
+				if ($this->post_type_name != 'user') {
+					update_post_meta($postId, $field_id_name, isset($metaFields[$field_id_name]) ? $metaFields[$field_id_name] : null);
+				} else {
+					update_usermeta($postId, $field_id_name, isset($metaFields[$field_id_name]) ? $metaFields[$field_id_name] : null);
+				}
 			}
 		}
 
