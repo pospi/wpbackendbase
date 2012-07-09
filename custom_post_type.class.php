@@ -154,6 +154,11 @@ class Custom_Post_Type
 			$post_type_name = $this->post_type_name;
 
 			// Taxonomy properties
+			if (is_array($name)) {
+				list($name, $plural) = $name;
+			} else {
+				$plural = $name . 's';
+			}
 			$taxonomy_name		= strtolower( str_replace( ' ', '_', $name ) );
 			$taxonomy_labels	= $labels;
 			$taxonomy_args		= $args;
@@ -171,7 +176,7 @@ class Custom_Post_Type
 			{
 				//Capitilize the words and make it plural
 				$name 		= ucwords( str_replace( '_', ' ', $name ) );
-				$plural 	= $name . 's';
+				$plural 	= ucwords( str_replace( '_', ' ', $plural ) );
 
 				// Default labels, overwrite them with the given labels.
 				$labels = array_merge(
@@ -188,7 +193,7 @@ class Custom_Post_Type
 					    'update_item' 			=> function_exists('__') ? __( 'Update ' . $name ) : WP_Core::__( 'Update ' . $name ),
 					    'add_new_item' 			=> function_exists('__') ? __( 'Add New ' . $name ) : WP_Core::__( 'Add New ' . $name ),
 					    'new_item_name' 		=> function_exists('__') ? __( 'New ' . $name . ' Name' ) : WP_Core::__( 'New ' . $name . ' Name' ),
-					    'menu_name' 			=> function_exists('__') ? __( $name ) : WP_Core::__( $name ),
+					    'menu_name' 			=> function_exists('__') ? __( $plural ) : WP_Core::__( $plural ),
 					),
 
 					// Given labels
