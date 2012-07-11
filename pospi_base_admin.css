@@ -6,6 +6,25 @@
 /*-----------------------------------------------------------------------*/
 /* formio overrides & extensions for wordpress admin theme compatibility */
 
+#side-sortables .formio label {
+	width: 40%;
+}
+#side-sortables .formio input, #side-sortables .formio textarea, #side-sortables .formio select {
+	width: 45%;
+}
+#side-sortables .formio input[type=submit],
+#side-sortables .formio input[type=reset],
+#side-sortables .formio input[type=button],
+#side-sortables .formio input[type=checkbox],
+#side-sortables .formio input[type=radio],
+#side-sortables .formio select {
+	width: auto;
+}
+#side-sortables .formio .datetime label {
+	width: 20%;
+	font-size: 0.8em;
+}
+
 .formio label {
 	font-weight: normal;
 }

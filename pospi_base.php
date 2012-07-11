@@ -45,6 +45,8 @@ add_action( 'admin_init', function() {
 	wp_enqueue_style('jquery_tokeninput');
     wp_register_style('formio_css', plugins_url('formio/formio.css', __FILE__));
     wp_enqueue_style('formio_css');
+    wp_register_style('formio_theme_css', plugins_url('formio/themes/wordpress.css', __FILE__));
+    wp_enqueue_style('formio_theme_css');
 
     wp_register_style('pospi_admin_base_css', plugins_url('pospi_base_admin.css', __FILE__));
     wp_enqueue_style('pospi_admin_base_css');
