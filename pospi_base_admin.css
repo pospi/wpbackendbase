@@ -76,3 +76,9 @@ li.token-input-token.img .token-input-delete-token {
 	top: 1px;
 	right: 2px;
 }
+
+/* make forms smaller on the media page or they will be way too wide */
+.media-item .formio { width: 620px; }
+.media-item .formio legend { font-weight: bold; font-size: 13px; }
+.media-item .formio label { font-weight: bold; }
+.media-item .formio .multiple label { font-weight: normal; }

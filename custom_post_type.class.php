@@ -278,7 +278,10 @@ class Custom_Post_Type
 			$that = $this;
 
 			// output the metabox for our post type on the admin screen
-			if ($this->post_type_name != 'user') {
+			if ($this->post_type_name != 'user' && $this->post_type_name != 'attachment') {
+
+				// --- STANDARD POST TYPE SCREEN ---
+
 				add_action('admin_init', function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields, $that )
 				{
 					add_meta_box(
@@ -295,7 +298,7 @@ class Custom_Post_Type
 							wp_nonce_field( plugin_basename( __FILE__ ), 'custom_post_type' );
 
 							// draw the box's inputs
-							$that->get_metabox_form_output($metaBoxId, $meta, $post);
+							echo $that->get_metabox_form_output($metaBoxId, $meta, $post);
 						},
 						$post_type_name,
 						$box_context,
@@ -303,32 +306,121 @@ class Custom_Post_Type
 						array( $fields )
 					);
 				});
-			} else {
+
+				// also set the metabox's class for formIO input styling
+				add_filter("postbox_classes_{$post_type_name}_{$box_id}", function($metaboxClasses) {
+					$metaboxClasses[] = 'formio';
+					return $metaboxClasses;
+				});
+			} else if ($this->post_type_name != 'attachment') {
+
+				// --- USER PROFILE EDITOR ---
+
 				$metaboxDrawCb = function($user) use ($box_id, $box_title, $that) {
 					// Write a nonce field for some validation
 					wp_nonce_field(plugin_basename( __FILE__ ), 'custom_post_type');
 
-					echo '<h3>' . $box_title . '</h3><div class="formio">';
+					// get the logged in user's roles for assigning form classes
+					$roles = array();
+					if (!empty( $user->roles )) {
+						foreach ($user->roles as $role) {
+							$roles[] = $role;
+						}
+					}
 
 					// Get the saved values
 					$meta = $that->get_post_meta( $user->ID );
 
-					// draw the box's inputs
-					$that->get_metabox_form_output($box_id, $meta, $user);
+					// output the form section
+					echo '<div class="formio ' . $box_id . ' ' . implode(' ', $roles) . '"><h3>' . $box_title . '</h3>';
+
+					echo $that->get_metabox_form_output($box_id, $meta, $user);
 
 					echo '</div>';
 				};
 				add_action('show_user_profile', $metaboxDrawCb);
 				add_action('edit_user_profile', $metaboxDrawCb);
-			}
+			} else {
 
-			// also set the metabox's class for formIO input styling
-			add_filter("postbox_classes_{$post_type_name}_{$box_id}", function($metaboxClasses) {
-				$metaboxClasses[] = 'formio';
-				return $metaboxClasses;
-			});
+				// --- ATTACHMENT EDITOR ---
+
+				add_filter('attachment_fields_to_edit', function($formFields, $post) use ($box_id, $box_title, $that) {
+					// Write a nonce field for some validation
+					wp_nonce_field(plugin_basename( __FILE__ ), 'custom_post_type');
+
+					// Get the saved values
+					$meta = $that->get_post_meta( $post->ID );
+
+					// build a string for our custom fields HTML
+					$formStr = '<div class="formio ' . $box_id . '">';
+
+					$formStr .= $that->__getCategoryInputsForAttachment($post);
+
+					$formStr .= '<h3>' . $box_title . '</h3>';
+					$formStr .= $that->get_metabox_form_output($box_id, $meta, $post);
+
+					$formStr .= '</div>';
+
+					// remove the builtin (useless) taxonomy inputs
+					foreach ($that->taxonomies as $category) {
+						unset($formFields[$category]);
+					}
+					// send back as the form footer - hopefully this is not widely used by other plugins
+					$formFields['_final'] = $formStr;
+
+					return $formFields;
+				}, 10, 2);
+			}
 		}
 
+	}
+
+	/**
+	 * Used by form input builders for attachment post types which have no taxonomy UIs
+	 * to retrieve extra fields for outputting on the attachment data page.
+	 */
+	public function __getCategoryInputsForAttachment($attachment, $force = false)
+	{
+		$categories = array();
+		$selectedCats = $this->get_post_terms($attachment->ID);
+
+		foreach ($selectedCats as $tax => $terms) {
+			if (!$terms) continue;
+			foreach ($terms as $i => $term) {
+				$selectedCats[$tax][$i] = $term->term_id;
+			}
+		}
+
+		// create a formIO instance for managing this taxonomy's metadata if not already present
+		if ($force || !isset($this->formHandlers['__taxonomy'])) {
+			$form = new FormIO('', 'POST');
+
+			foreach ($this->taxonomies as $category) {
+				$terms = $this->get_all_terms($category);
+				$selected = isset($selectedCats[$category]) ? $selectedCats[$category] : array();
+
+				// create a checkgroup for each taxonomy
+				$form->addField('custom_tax[' . self::get_field_id_name($category) . ']', self::get_field_friendly_name($category), 'checkgroup');
+				$field = $form->getLastField();
+
+				foreach ($terms as $term) {
+					// create options for each term
+					$field->setOption($term->term_id, $term->name);
+
+					// and select if chosen
+					if (in_array($term->term_id, $selected)) {
+						$field->setValue($term->term_id);
+					}
+				}
+
+			}
+
+			$this->formHandlers['__taxonomy'] = $form;
+		} else {
+			$form = $this->formHandlers['__taxonomy'];
+		}
+
+		return $form->getFieldsHTML();
 	}
 
 	/**
@@ -351,19 +443,43 @@ class Custom_Post_Type
 		// Need the post type name again
 		$post_type_name = $this->post_type_name;
 
+		// define save handler
 		$that = $this;
-		foreach ($this->saveHooks as $hook) {
-			add_action($hook, function($postId) use( $that, $post_type_name )
-			{
-				// If doing the wordpress autosave function, ignore...
-				if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+		$saveMethod = function($postId) use( $that, $post_type_name )
+		{
+			// If doing the wordpress autosave function, ignore...
+			if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 
-				if ( isset($_POST['custom_post_type']) && ! wp_verify_nonce( $_POST['custom_post_type'], plugin_basename(__FILE__) ) ) return;
+			if ( isset($_POST['custom_post_type']) && ! wp_verify_nonce( $_POST['custom_post_type'], plugin_basename(__FILE__) ) ) return;
 
-				if( isset( $_POST['custom_meta'] ) && $postId && ((get_post_type($postId) == $post_type_name) || (get_post_type($postId) === false && $post_type_name == 'user')) ) {
-					$that->update_post_meta($postId, $_POST['custom_meta']);
+			if( isset( $_POST['custom_meta'] ) && $postId && ((get_post_type($postId) == $post_type_name) || (get_post_type($postId) === false && $post_type_name == 'user')) ) {
+				$that->update_post_meta($postId, $_POST['custom_meta']);
+			}
+
+			// special case for handling taxonomy updates for attachments - this is not builtin
+			if (isset($_POST['custom_tax']) && $postId && get_post_type($postId) == $post_type_name) {
+				$taxonomies = array();
+				foreach ($_POST['custom_tax'] as $tax => $termIds) {
+					$taxonomies[$tax] = array();
+					foreach ($termIds as $termId => $ignored) {
+						$taxonomies[$tax][] = $termId;
+					}
 				}
-			});
+				$that->update_post_terms($postId, $taxonomies);
+			}
+		};
+
+		// bind to appropriate hook
+		if ($this->post_type_name != 'attachment') {
+			foreach ($this->saveHooks as $hook) {
+				add_action($hook, $saveMethod);
+			}
+		} else {
+			$attachmentSaveMethod = function($post, $attachment) use ($saveMethod) {
+				$saveMethod($post['ID']);
+				return $post;
+			};
+			add_filter('attachment_fields_to_save', $attachmentSaveMethod, 10, 2);
 		}
 	}
 
@@ -494,6 +610,20 @@ class Custom_Post_Type
 		return $metaFields;
 	}
 
+	/**
+	 * Update taxonomy terms for a post, but only those provided
+	 *
+	 * @param  int    $postId ID of the post to update
+	 * @param  Array  $terms  array of term IDs keyed by taxonomy name
+	 * @param  bool	  $append if false, existing term values will be erased
+	 */
+	public function update_post_terms($postId, Array $taxTerms, $append = false)
+	{
+		foreach ($taxTerms as $taxonomy => $terms) {
+			wp_set_object_terms($postId, $terms, $taxonomy, $append);
+		}
+	}
+
 	public function get_post_meta_fields()
 	{
 		$fields = array();
@@ -513,6 +643,15 @@ class Custom_Post_Type
 		return $fields;
 	}
 
+	public function get_all_terms($taxonomy)
+	{
+		if (function_exists('get_terms')) {
+			return get_terms($taxonomy, array('hide_empty' => 0));
+		} else {
+			return WP_Taxonomy::get_terms($taxonomy, array('hide_empty' => 0));
+		}
+	}
+
 	public function get_metabox_form_output($boxName, Array $meta = null, $post = null)
 	{
 		$metaBoxId = self::get_field_id_name($boxName);
@@ -521,7 +660,7 @@ class Custom_Post_Type
 			$this->init_form_handlers($meta, $post, true);
 		}
 
-		echo $this->formHandlers[$metaBoxId]->getFieldsHTML();
+		return $this->formHandlers[$metaBoxId]->getFieldsHTML();
 	}
 
 	/**
@@ -678,6 +817,11 @@ class Custom_Post_Type
 	public static function get_field_id_name($label)
 	{
 		return strtolower( str_replace( ' ', '_', $label ) );
+	}
+
+	public static function get_field_friendly_name($label)
+	{
+		return ucfirst( str_replace( '_', ' ', $label ) );
 	}
 
 	//----------------------------------------------------------------------------------------------------------------------------------------------------
