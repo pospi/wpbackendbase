@@ -82,3 +82,21 @@ li.token-input-token.img .token-input-delete-token {
 .media-item .formio legend { font-weight: bold; font-size: 13px; }
 .media-item .formio label { font-weight: bold; }
 .media-item .formio .multiple label { font-weight: normal; }
+
+
+/*-----------------------------------------------------------------------*/
+/* TODO list helper class for outputting dev notes in-page */
+
+.todo {
+	padding: 0.2em;
+	background: #BB00BB;
+	font-weight: bold;
+	color: #FFF;
+	border: 1px solid #AAA;
+	border-radius: 3px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+}
+.todo:before {
+	content: ':TODO: ';
+}
