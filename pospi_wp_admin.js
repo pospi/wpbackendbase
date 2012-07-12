@@ -49,6 +49,17 @@
 							return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.linkUrl + "\">open</a>)</sub></p></li>";
 						}
 					});
+				},
+				"[data-fio-type='posttype_user']" : function(el) {
+					FormIO.prototype.initAutoCompleteField.call(this, el, {
+						preventDuplicates : true,
+						resultsFormatter : function(item) {
+							return "<li>" + item.name + " &lt;" + item.emailAddr + "&gt; <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a>)</sub></li>";
+						},
+						tokenFormatter : function(item) {
+							return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a>)</sub></p></li>";
+						}
+					});
 				}
 			}
 		});

@@ -18,8 +18,9 @@ require_once(POSPI_PLUGIN_BASE . "/formio_field-filesize.class.php");
 // post type inputs
 require_once(POSPI_PLUGIN_BASE . "/custom_post_type.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-posttypes.class.php");
-require_once(POSPI_PLUGIN_BASE . "/formio_field-links.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-attachments.class.php");
+require_once(POSPI_PLUGIN_BASE . "/formio_field-links.class.php");
+require_once(POSPI_PLUGIN_BASE . "/formio_field-users.class.php");
 
 // Custom Javascript
 add_action('admin_enqueue_scripts',function(){

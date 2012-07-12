@@ -791,7 +791,7 @@ class Custom_Post_Type
 		}
 
 		// set post type and query options for post type fields
-		else if (in_array($type, array('posttypes', 'links', 'attachments'))) {
+		else if (in_array($type, array('posttypes', 'links', 'attachments', 'users'))) {
 			// handle query arg callbacks
 			if ($options['query_args'] instanceof Closure) {
 				$args = $options['query_args'];
