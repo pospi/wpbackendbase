@@ -32,10 +32,10 @@ class Custom_Post_Type
 	{
 		// Set some important variables
 		if (is_array($name)) {
-			$this->post_type_name		= strtolower( str_replace( ' ', '_', $name[0] ) );
-			$this->post_type_name_plural = strtolower( str_replace( ' ', '_', $name[1] ) );
+			$this->post_type_name		= self::get_field_id_name($name[0]);
+			$this->post_type_name_plural = self::get_field_id_name($name[1]);
 		} else {
-			$this->post_type_name		= strtolower( str_replace( ' ', '_', $name ) );
+			$this->post_type_name		= self::get_field_id_name($name);
 		}
 		$this->post_type_args = $args;
 
@@ -166,7 +166,7 @@ class Custom_Post_Type
 			} else {
 				$plural = $name . 's';
 			}
-			$taxonomy_name		= strtolower( str_replace( ' ', '_', $name ) );
+			$taxonomy_name		= self::get_field_id_name($name);
 			$taxonomy_labels	= $labels;
 			$taxonomy_args		= $args;
 
@@ -182,8 +182,8 @@ class Custom_Post_Type
 			if( !$tax_exists )
 			{
 				//Capitilize the words and make it plural
-				$name 		= ucwords( str_replace( '_', ' ', $name ) );
-				$plural 	= ucwords( str_replace( '_', ' ', $plural ) );
+				$name 		= self::get_field_friendly_name($name);
+				$plural 	= self::get_field_friendly_name($plural);
 
 				// Default labels, overwrite them with the given labels.
 				$labels = array_merge(
@@ -263,8 +263,8 @@ class Custom_Post_Type
 			$post_type_name = $this->post_type_name;
 
 			// Meta variables
-			$box_id 		= strtolower( str_replace( ' ', '_', $title ) );
-			$box_title		= ucwords( str_replace( '_', ' ', $title ) );
+			$box_id 		= self::get_field_id_name($title);
+			$box_title		= self::get_field_friendly_name($title);
 			$box_context	= $context;
 			$box_priority	= $priority;
 
@@ -805,11 +805,13 @@ class Custom_Post_Type
 		}
 	}
 
+	// name / ID conversion helpers
+
 	public function get_friendly_name($plural = false)
 	{
-		$name = ucfirst( str_replace( '_', ' ', $this->post_type_name ) );
+		$name = self::get_field_friendly_name($this->post_type_name);
 		if ($plural) {
-			return ucfirst( str_replace( '_', ' ', isset($this->post_type_name_plural) ? $this->post_type_name_plural : $name . 's') );
+			return self::get_field_friendly_name(isset($this->post_type_name_plural) ? $this->post_type_name_plural : $name . 's');
 		}
 		return $name;
 	}
@@ -821,7 +823,7 @@ class Custom_Post_Type
 
 	public static function get_field_friendly_name($label)
 	{
-		return ucfirst( str_replace( '_', ' ', $label ) );
+		return ucwords( str_replace( '_', ' ', $label ) );
 	}
 
 	//----------------------------------------------------------------------------------------------------------------------------------------------------
