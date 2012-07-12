@@ -100,3 +100,5 @@ li.token-input-token.img .token-input-delete-token {
 .todo:before {
 	content: ':TODO: ';
 }
+
+.formio p.todo { display: inline-block; width: auto; }
