@@ -754,6 +754,16 @@ class Custom_Post_Type
 			$field->setAttribute('hint', $options['hint']);
 		}
 
+		// add any CSS class string provided
+		if (!empty($options['classes'])) {
+			$field->setAttribute('classes', $options['classes']);
+		}
+
+		// allow overriding field description
+		if (!empty($options['description'])) {
+			$field->setAttribute('desc', $options['description']);
+		}
+
 		// add field options if this is a multiple input type
 		if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
 			foreach ($options['values'] as $v) {
