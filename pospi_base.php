@@ -12,8 +12,10 @@ License: MIT
 define('POSPI_PLUGIN_BASE', dirname(__FILE__));
 
 require_once(POSPI_PLUGIN_BASE . "/formio/form_io.class.php");
+// some additional useful form inputs
 require_once(POSPI_PLUGIN_BASE . "/formio_field-displaylink.class.php");
-
+require_once(POSPI_PLUGIN_BASE . "/formio_field-filesize.class.php");
+// post type inputs
 require_once(POSPI_PLUGIN_BASE . "/custom_post_type.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-posttypes.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-links.class.php");
