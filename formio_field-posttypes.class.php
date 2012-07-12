@@ -19,7 +19,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 	protected static $DEFAULT_POST_TYPE = 'post';
 
 	protected $results;
-	protected $queryArgs;
+	protected $queryArgs = array();
 
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'posts_per_page' => -1,

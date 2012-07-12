@@ -13,6 +13,7 @@ class FormIOField_Links extends FormIOField_Posttypes
 	protected static $DEFAULT_POST_TYPE = 'link';
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'limit' => -1,
+		'orderby' => 'name',
 	);
 
 	protected function getBuilderVars()

@@ -14,6 +14,7 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 		'post_type' => 'attachment',
 		'post_status' => 'inherit',		// needed to query for attachment post types
 		'posts_per_page' => -1,
+		'orderby' => 'title',
 	);
 
 	private $isImage = false;
