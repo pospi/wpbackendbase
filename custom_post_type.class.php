@@ -749,6 +749,11 @@ class Custom_Post_Type
 			$field->setRequired();
 		}
 
+		// set field to required if desired
+		if (!empty($options['readonly'])) {
+			$field->setAttribute('readonly', true);
+		}
+
 		// add field hints
 		if (!empty($options['hint'])) {
 			$field->setAttribute('hint', $options['hint']);
