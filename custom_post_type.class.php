@@ -799,6 +799,7 @@ class Custom_Post_Type
 			foreach ($options['validators'] as $validator => $valArgs) {
 				$field->addValidator($validator, is_array($valArgs) ? $valArgs : array($valArgs));
 			}
+			unset($options['validators']);
 		}
 
 		// set any dependencies present
@@ -806,31 +807,19 @@ class Custom_Post_Type
 			foreach ($options['dependencies'] as $expectedVal => $visibleField) {
 				$field->addDependency($expectedVal, $visibleField);
 			}
+			unset($options['dependencies']);
 		}
 
 		// set field to required if desired
 		if (!empty($options['required'])) {
 			$field->setRequired();
-		}
-
-		// set field to required if desired
-		if (!empty($options['readonly'])) {
-			$field->setAttribute('readonly', true);
-		}
-
-		// add field hints
-		if (!empty($options['hint'])) {
-			$field->setAttribute('hint', $options['hint']);
-		}
-
-		// add any CSS class string provided
-		if (!empty($options['classes'])) {
-			$field->setAttribute('classes', $options['classes']);
+			unset($options['required']);
 		}
 
 		// allow overriding field description
 		if (!empty($options['description'])) {
 			$field->setAttribute('desc', $options['description']);
+			unset($options['description']);
 		}
 
 		// add field options if this is a multiple input type
@@ -838,6 +827,7 @@ class Custom_Post_Type
 			foreach ($options['values'] as $v) {
 				$field->setOption(self::get_field_id_name($v), $v);
 			}
+			unset($options['values']);
 		}
 
 		// add subfields for group inputs
@@ -852,11 +842,13 @@ class Custom_Post_Type
 
 				$this->handleMetaboxConfig($f, $subOpts, $subField, $post, $meta, $metaBoxId, $fieldName);
 			}
+			unset($options['fields']);
 		}
 
 		// set the field type for repeater inputs
 		else if ($type == 'repeater') {
 			$field->setRepeaterType($options['field_type']);
+			unset($options['repeater']);
 		}
 
 		// set post type and query options for post type fields
@@ -881,6 +873,15 @@ class Custom_Post_Type
 			if (!empty($options['single'])) {
 				$field->setSingle();
 			}
+
+			unset($options['post_type']);
+			unset($options['query_args']);
+			unset($options['single']);
+		}
+
+		// add all remaining options as field display attributes
+		foreach ($options as $opt => $val) {
+			$field->setAttribute($opt, $val);
 		}
 	}
 
