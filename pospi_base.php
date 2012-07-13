@@ -13,17 +13,17 @@ define('POSPI_PLUGIN_BASE', dirname(__FILE__));
 
 require_once(POSPI_PLUGIN_BASE . "/formio/form_io.class.php");
 // some additional useful form inputs
-require_once(POSPI_PLUGIN_BASE . "/formio_field-richedit.class.php");
-require_once(POSPI_PLUGIN_BASE . "/formio_field-facebook_user.class.php");
-require_once(POSPI_PLUGIN_BASE . "/formio_field-twitter_user.class.php");
-require_once(POSPI_PLUGIN_BASE . "/formio_field-displaylink.class.php");
-require_once(POSPI_PLUGIN_BASE . "/formio_field-filesize.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-richedit.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-facebook_user.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-twitter_user.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-displaylink.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-filesize.class.php");
 // post type inputs
 require_once(POSPI_PLUGIN_BASE . "/custom_post_type.class.php");
-require_once(POSPI_PLUGIN_BASE . "/formio_field-posttypes.class.php");
-require_once(POSPI_PLUGIN_BASE . "/formio_field-attachments.class.php");
-require_once(POSPI_PLUGIN_BASE . "/formio_field-links.class.php");
-require_once(POSPI_PLUGIN_BASE . "/formio_field-users.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-posttypes.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-attachments.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-links.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-users.class.php");
 
 // Custom Javascript
 add_action('admin_enqueue_scripts',function(){
