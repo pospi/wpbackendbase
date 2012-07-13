@@ -55,6 +55,9 @@ add_action( 'admin_init', function() {
 
     wp_register_style('pospi_admin_base_css', plugins_url('pospi_base_admin.css', __FILE__));
     wp_enqueue_style('pospi_admin_base_css');
+
+    // we also need to initialize sessions in order to handle submission errors on custom post metadata
+    session_start();
 });
 
 // plugin activation hook

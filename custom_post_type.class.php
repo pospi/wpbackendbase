@@ -583,8 +583,34 @@ class Custom_Post_Type
 	{
 		$metaFields = $this->prehandlePostMeta($postId, $metaFields);
 
+		// load submission handlers
+		$this->init_form_handlers($metaFields, $postId, true);
+
 		// Loop through each meta box
 		foreach ($this->meta_fields as $title => $fields) {
+			// load the form handler responsible for this metabox and validate the data against it
+			$inputHandler = $this->formHandlers[self::get_field_id_name($title)];
+
+			$inputHandler->importData($metaFields, true);
+
+			if (!$inputHandler->validate()) {
+				$that = $this;
+				// store the form's errors in session so that we can pull them back after the redirect
+				if (!isset($_SESSION[self::ERROR_SESSION_STORAGE])) {
+					$_SESSION[self::ERROR_SESSION_STORAGE] = array();
+				}
+				$_SESSION[self::ERROR_SESSION_STORAGE][self::get_field_id_name($title)] = $inputHandler->getErrors();
+				continue;
+			}
+
+			// merge validated data from formIO instance back onto metadata
+			$validData = $inputHandler->getData();
+			$metaData = array();
+			foreach ($validData as $k => $v) {
+				$metaData[preg_replace('/^' . self::META_POST_KEY . '\[(.*)\]$/', '$1', $k)] = $v;
+			}
+			$metaFields = array_merge($metaFields, $metaData);
+
 			// Loop through all fields
 			foreach ($fields as $label => $type) {
 				$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
@@ -670,10 +696,24 @@ class Custom_Post_Type
 		$metaBoxId = self::get_field_id_name($boxName);
 
 		if ($meta || !isset($this->formHandlers[$metaBoxId])) {		// ensure form handler is created and initialised with the correct values for the passed metadata
-			$this->init_form_handlers($meta, $post, true);
+			$this->init_form_handlers($meta, $post);
 		}
 
-		return $this->formHandlers[$metaBoxId]->getFieldsHTML();
+		// if there was no error in last submission, we are done
+		if (!isset($_SESSION[self::ERROR_SESSION_STORAGE][$metaBoxId])) {
+			return $this->formHandlers[$metaBoxId]->getFieldsHTML();
+		}
+
+		// load the errors from session back into the form
+		$handler = $this->formHandlers[$metaBoxId];
+		foreach ($_SESSION[self::ERROR_SESSION_STORAGE][$metaBoxId] as $error => $errorDetails) {
+			$handler->addError($error, $errorDetails);
+		}
+
+		// we're now done with this form's errors, so clear them out
+		unset($_SESSION[self::ERROR_SESSION_STORAGE][$metaBoxId]);
+
+		return $handler->getFieldsHTML();
 	}
 
 	/**
