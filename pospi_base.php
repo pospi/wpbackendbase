@@ -13,6 +13,8 @@ define('POSPI_PLUGIN_BASE', dirname(__FILE__));
 
 require_once(POSPI_PLUGIN_BASE . "/formio/form_io.class.php");
 // some additional useful form inputs
+require_once(POSPI_PLUGIN_BASE . "/formio_field-facebook_user.class.php");
+require_once(POSPI_PLUGIN_BASE . "/formio_field-twitter_user.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-displaylink.class.php");
 require_once(POSPI_PLUGIN_BASE . "/formio_field-filesize.class.php");
 // post type inputs

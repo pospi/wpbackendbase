@@ -15,8 +15,20 @@
 		};
 
 		// init form UI javascript
+
+		function initUrlInput(el) {
+			var link = el.prev(),
+				baseHref = link.attr('href');
+
+			link.attr('href', baseHref.replace('%s', el.val()));
+			el.blur(function() {
+				link.attr('href', baseHref.replace('%s', el.val()));
+			});
+		};
+
 		metaboxes.closest('form').formio({
 			setupRoutines : {
+				// custom (or builtin) post type inputs
 				"[data-fio-type='posttype_attachment']" : function(el) {
 					FormIO.prototype.initAutoCompleteField.call(this, el, {
 						preventDuplicates : true,
@@ -60,7 +72,11 @@
 							return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a>)</sub></p></li>";
 						}
 					});
-				}
+				},
+
+				// additional useful inputs
+				"[data-fio-type='facebook_user']" : initUrlInput,
+				"[data-fio-type='twitter_user']" : initUrlInput
 			}
 		});
 

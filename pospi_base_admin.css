@@ -83,6 +83,13 @@ li.token-input-token.img .token-input-delete-token {
 .media-item .formio label { font-weight: bold; }
 .media-item .formio .multiple label { font-weight: normal; }
 
+/*-----------------------------------------------------------------------*/
+/* styles for custom input types */
+
+.formio .facebook input,
+.formio .twitter input {
+	width: auto;
+}
 
 /*-----------------------------------------------------------------------*/
 /* TODO list helper class for outputting dev notes in-page */
