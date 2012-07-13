@@ -376,6 +376,17 @@ class Custom_Post_Type
 					return $formFields;
 				}, 10, 2);
 			}
+
+			// also register a callback to show any custom metabox submission errors present
+			if (isset($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE][$box_id])) {
+				add_action('admin_notices', function () use ($that, $box_id, $box_title) {
+					$boxErrorStr = sprintf( __('%d error(s) saving \'%s\' data. Please <a href="#%s">review</a> this section.'),
+										count($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE][$box_id]), $box_title, $box_id
+									);
+
+					echo '<div class="error"><p>' . $boxErrorStr . '</p></div>';
+				});
+			}
 		}
 
 	}
