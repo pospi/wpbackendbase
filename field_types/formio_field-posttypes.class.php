@@ -15,7 +15,9 @@ require_once(FORMIO_FIELDS . 'formio_field-multiple.class.php');
 
 class FormIOField_Posttypes extends FormIOField_Autocomplete
 {
+	const AJAX_HOOK_NAME = 'wp_ajax_posttype_input_autocomplete';		// this should be bound to FormIOField_Posttypes::__responseHandler
 	const DEFAULT_POST_LIMIT = 30;
+
 	protected static $DEFAULT_POST_TYPE = 'post';
 
 	protected $results;
@@ -98,10 +100,32 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 
 	protected function updateAutocompleteUrl($postType, $metabox, $metakey)
 	{
-		$this->setAutocompleteUrl(plugins_url("pospi_base/posttype-autocomplete.php?pt={$postType}&form={$metabox}&field={$metakey}"));
+		$this->setAutocompleteUrl(admin_url("admin-ajax.php?action=" . preg_replace('/^wp_ajax_/', '', self::AJAX_HOOK_NAME) . "&pt={$postType}&form={$metabox}&field={$metakey}"));
 	}
 
 	//--------------------------------------------------------------------------
+
+	// This should be bound to an appropriate admin ajax action
+	public static function __responseHandler()
+	{
+		// load args
+		$postType = isset($_GET['pt']) ? $_GET['pt'] : 'post';
+		$metaBox = $_GET['form'] ? $_GET['form'] : null;
+		$metaKey = $_GET['field'] ? $_GET['field'] : null;
+
+		// load post type class & ensure form inputs have been setup
+		$postType = Custom_Post_Type::get_post_type($postType);
+		$postType->init_form_handlers();
+
+		// load field by name
+		$field = $postType->formHandlers[$metaBox]->getField($metaKey);
+
+		// run field query & output it
+		header('Content-type: application/json');
+		echo json_encode(array_values($field->runRequest($_GET['term'])));
+
+		die;
+	}
 
 	/**
 	 * Handles a POST request for autocomplete data

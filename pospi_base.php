@@ -25,6 +25,10 @@ require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-attachments.class.ph
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-links.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-users.class.php");
 
+if (is_admin()) {
+	add_action(FormIOField_Posttypes::AJAX_HOOK_NAME, 'FormIOField_Posttypes::__responseHandler');
+}
+
 // Custom Javascript
 add_action('admin_enqueue_scripts',function(){
 	// wp_register_script("jquery","https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js",array(),"1.6.4");
