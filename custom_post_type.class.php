@@ -10,6 +10,11 @@
  */
 class Custom_Post_Type
 {
+	const ERROR_SESSION_STORAGE = 'custom_post_errors';
+	const NONCE_FIELD_NAME = 'custom_post_type';
+	const META_POST_KEY = 'custom_meta';
+	const TAX_POST_KEY = 'custom_tax';	// used by media post types to reimplement taxonomies
+
 	public $post_type_name;
 	public $post_type_name_plural;
 	public $post_type_args;
@@ -295,7 +300,7 @@ class Custom_Post_Type
 							$meta = $that->get_post_meta( $post->ID );
 
 							// Write a nonce field for some validation
-							wp_nonce_field( plugin_basename( __FILE__ ), 'custom_post_type' );
+							wp_nonce_field( plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME );
 
 							// draw the box's inputs
 							echo $that->get_metabox_form_output($metaBoxId, $meta, $post);
@@ -318,7 +323,7 @@ class Custom_Post_Type
 
 				$metaboxDrawCb = function($user) use ($box_id, $box_title, $that) {
 					// Write a nonce field for some validation
-					wp_nonce_field(plugin_basename( __FILE__ ), 'custom_post_type');
+					wp_nonce_field(plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME);
 
 					// get the logged in user's roles for assigning form classes
 					$roles = array();
@@ -346,7 +351,7 @@ class Custom_Post_Type
 
 				add_filter('attachment_fields_to_edit', function($formFields, $post) use ($box_id, $box_title, $that) {
 					// Write a nonce field for some validation
-					wp_nonce_field(plugin_basename( __FILE__ ), 'custom_post_type');
+					wp_nonce_field(plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME);
 
 					// Get the saved values
 					$meta = $that->get_post_meta( $post->ID );
@@ -400,7 +405,7 @@ class Custom_Post_Type
 				$selected = isset($selectedCats[$category]) ? $selectedCats[$category] : array();
 
 				// create a checkgroup for each taxonomy
-				$form->addField('custom_tax[' . self::get_field_id_name($category) . ']', self::get_field_friendly_name($category), 'checkgroup');
+				$form->addField(self::TAX_POST_KEY . '[' . self::get_field_id_name($category) . ']', self::get_field_friendly_name($category), 'checkgroup');
 				$field = $form->getLastField();
 
 				foreach ($terms as $term) {
@@ -450,16 +455,16 @@ class Custom_Post_Type
 			// If doing the wordpress autosave function, ignore...
 			if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 
-			if ( isset($_POST['custom_post_type']) && ! wp_verify_nonce( $_POST['custom_post_type'], plugin_basename(__FILE__) ) ) return;
+			if ( isset($_POST[Custom_Post_Type::NONCE_FIELD_NAME]) && ! wp_verify_nonce( $_POST[Custom_Post_Type::NONCE_FIELD_NAME], plugin_basename(__FILE__) ) ) return;
 
-			if( isset( $_POST['custom_meta'] ) && $postId && ((get_post_type($postId) == $post_type_name) || (get_post_type($postId) === false && $post_type_name == 'user')) ) {
-				$that->update_post_meta($postId, $_POST['custom_meta']);
+			if( isset( $_POST[Custom_Post_Type::META_POST_KEY] ) && $postId && ((get_post_type($postId) == $post_type_name) || (get_post_type($postId) === false && $post_type_name == 'user')) ) {
+				$that->update_post_meta($postId, $_POST[Custom_Post_Type::META_POST_KEY]);
 			}
 
 			// special case for handling taxonomy updates for attachments - this is not builtin
-			if (isset($_POST['custom_tax']) && $postId && get_post_type($postId) == $post_type_name) {
+			if (isset($_POST[Custom_Post_Type::TAX_POST_KEY]) && $postId && get_post_type($postId) == $post_type_name) {
 				$taxonomies = array();
-				foreach ($_POST['custom_tax'] as $tax => $termIds) {
+				foreach ($_POST[Custom_Post_Type::TAX_POST_KEY] as $tax => $termIds) {
 					$taxonomies[$tax] = array();
 					foreach ($termIds as $termId => $ignored) {
 						$taxonomies[$tax][] = $termId;
@@ -585,9 +590,17 @@ class Custom_Post_Type
 				$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
 
 				if ($this->post_type_name != 'user') {
-					update_post_meta($postId, $field_id_name, isset($metaFields[$field_id_name]) ? $metaFields[$field_id_name] : null);
+					if (!isset($metaFields[$field_id_name])) {
+						delete_post_meta($postId, $field_id_name);
+					} else {
+						update_post_meta($postId, $field_id_name, $metaFields[$field_id_name]);
+					}
 				} else {
-					update_usermeta($postId, $field_id_name, isset($metaFields[$field_id_name]) ? $metaFields[$field_id_name] : null);
+					if (!isset($metaFields[$field_id_name])) {
+						delete_user_meta($postId, $field_id_name);
+					} else {
+						update_user_meta($postId, $field_id_name, $metaFields[$field_id_name]);
+					}
 				}
 			}
 		}
@@ -694,7 +707,7 @@ class Custom_Post_Type
 
 					$metaFieldId = self::get_field_id_name($label);
 					$metaKeyName = $metaBoxId . '_' . $metaFieldId;
-					$fieldName = 'custom_meta[' . $metaKeyName . ']';
+					$fieldName = self::META_POST_KEY . '[' . $metaKeyName . ']';
 
 					$form->addField($fieldName, $label, $type);
 					$field = $form->getLastField();
