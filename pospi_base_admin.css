@@ -109,3 +109,18 @@ li.token-input-token.img .token-input-delete-token {
 }
 
 .formio p.todo { display: inline-block; width: auto; }
+
+/* CSS for site commit history page */
+
+.commit h4 {
+	font-family: monospace;
+	margin-left: -40px;
+	font-weight: bold;
+}
+.commit {
+	padding-left: 2em;
+	margin-left: 2em;
+}
+.commit .date { color : #008000; }
+.commit .hash { color : #800000; }
+.commit .author { color : #000080; font-family: sans-serif; }

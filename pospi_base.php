@@ -30,6 +30,14 @@ if (is_admin()) {
 
 	// admin menu builder helper class
 	require_once(POSPI_PLUGIN_BASE . "/admin_menu.class.php");
+
+	// option to make your site's commit history visible to clients
+	define('SITE_GIT_REPO_DIR', ABSPATH . 'wp-content/');
+	// define('SITE_GIT_REPO_DIR', false);
+
+	if (SITE_GIT_REPO_DIR) {
+		AdminMenu::addPluginsSubmenu('Site Changelog', dirname(__FILE__) . '/commit_log.php');
+	}
 }
 
 // Custom Javascript
