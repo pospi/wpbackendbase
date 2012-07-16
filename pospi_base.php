@@ -27,6 +27,9 @@ require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-users.class.php");
 
 if (is_admin()) {
 	add_action(FormIOField_Posttypes::AJAX_HOOK_NAME, 'FormIOField_Posttypes::__responseHandler');
+
+	// admin menu builder helper class
+	require_once(POSPI_PLUGIN_BASE . "/admin_menu.class.php");
 }
 
 // Custom Javascript
