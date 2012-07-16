@@ -34,6 +34,7 @@ if (is_admin()) {
 	// option to make your site's commit history visible to clients
 	define('SITE_GIT_REPO_DIR', ABSPATH . 'wp-content/');
 	// define('SITE_GIT_REPO_DIR', false);
+	define('SITE_GIT_SUBMODULE_HISTORY', true);
 
 	if (SITE_GIT_REPO_DIR) {
 		AdminMenu::addPluginsSubmenu('Site Changelog', dirname(__FILE__) . '/commit_log.php');
