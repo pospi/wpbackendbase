@@ -84,9 +84,11 @@ abstract class AdminMenu
 
 	public static function addMenu($label, $urlOrCb, $capability = 'manage_options', $position = null, $iconUrl = null, $menuTitle = null)
 	{
+		list($slug, $cb) = self::handleMenuCallback($label, $urlOrCb);
+
 		self::$menusToAdd[$label] = array(
-			'slug' => is_string($urlOrCb) ? $urlOrCb : Custom_Post_Type::get_field_id_name($label),
-			'function' => is_string($urlOrCb) ? null : $urlOrCb,
+			'slug' => $slug,
+			'function' => $cb,
 
 			'capability' => $capability,
 			'position' => $position,
@@ -101,9 +103,11 @@ abstract class AdminMenu
 
 	public static function addSubmenu($menuLabel, $submenuLabel, $urlOrCb, $capability = 'manage_options', $menuTitle = null)
 	{
+		list($slug, $cb) = self::handleMenuCallback($submenuLabel, $urlOrCb);
+
 		$subpage = array(
-			'slug' => is_string($urlOrCb) ? $urlOrCb : Custom_Post_Type::get_field_id_name($submenuLabel),
-			'function' => is_string($urlOrCb) ? null : $urlOrCb,
+			'slug' => $slug,
+			'function' => $cb,
 
 			'capability' => $capability,
 			'menu_title' => isset($menuTitle) ? $menuTitle : $submenuLabel,
@@ -119,6 +123,25 @@ abstract class AdminMenu
 		self::$menusToAdd[$menuLabel]['subpages'][$submenuLabel] = $subpage;
 
 		self::registerHooks();
+	}
+
+	private static function handleMenuCallback($label, $urlOrCb)
+	{
+		if (is_string($urlOrCb)) {
+			if (preg_match('/^https?:/', $urlOrCb)) {
+				// absolute URL. don't think these will actually work, but they shouldn't be called via require() in any case!
+				return array($urlOrCb, null);
+			} else if ($urlOrCb[0] == '/') {
+				// absolute file URI - include it
+				return array(Custom_Post_Type::get_field_id_name($label), function() use ($urlOrCb) {
+					require_once($urlOrCb);
+				});
+			} else {
+				return array(Custom_Post_Type::get_field_id_name($label), $urlOrCb);
+			}
+		} else {
+			return array(Custom_Post_Type::get_field_id_name($label), $urlOrCb);
+		}
 	}
 
 	public static function removeMenu($menuLabel)
