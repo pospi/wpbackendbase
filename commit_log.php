@@ -19,7 +19,7 @@ $page = isset($_GET['start']) ? dechex(intval($_GET['start'], 16)) : false;
 
 function printCommit($commit)
 {
-	echo sprintf('<div class="commit" id="c_%6$s_%1$s"><h4><span class="date">%4$s</span> %6$s #<a class="hash" href="#c_%6$s_%2$s">%2$s</a> by <span class="author">%3$s</span></h4>%5$s</div>',
+	echo sprintf('<div class="commit" id="c_%6$s_%2$s"><h4><span class="date">%4$s</span> %6$s #<a class="hash" alt="%1$s" href="#c_%6$s_%2$s">%2$s</a> by <span class="author">%3$s</span></h4>%5$s</div>',
 			trim($commit['hash']), substr(trim($commit['hash']), 0, 7), htmlentities(trim($commit['author'])), trim($commit['date']), nl2br(trim($commit['msg'], " \r\n")), isset($commit['module']) ? $commit['module'] : '');
 }
 
@@ -33,7 +33,7 @@ function handleLines(Array $output)
 	$commit = array();
 	foreach($output as $line) {
 		if (strpos($line, 'Entering') === 0) {
-			$submoduleName = trim(substr($line, strlen('Entering')), ' \'');
+			$submoduleName = str_replace('/', '-', trim(substr($line, strlen('Entering')), ' \''));
 		} else if (strpos($line, 'commit') === 0) {
 			if (!empty($commit)) {
 				// next commit. output the previous one & clean the var
