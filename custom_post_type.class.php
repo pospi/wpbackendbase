@@ -414,54 +414,6 @@ class Custom_Post_Type
 	}
 
 	/**
-	 * Used by form input builders for attachment post types which have no taxonomy UIs
-	 * to retrieve extra fields for outputting on the attachment data page.
-	 */
-	public function __getCategoryInputsForAttachment($attachment, $force = false)
-	{
-		$categories = array();
-		$selectedCats = $this->get_post_terms($attachment->ID);
-
-		foreach ($selectedCats as $tax => $terms) {
-			if (!$terms) continue;
-			foreach ($terms as $i => $term) {
-				$selectedCats[$tax][$i] = $term->term_id;
-			}
-		}
-
-		// create a formIO instance for managing this taxonomy's metadata if not already present
-		if ($force || !isset($this->formHandlers['__taxonomy'])) {
-			$form = new FormIO('', 'POST');
-
-			foreach ($this->taxonomies as $category) {
-				$terms = $this->get_all_terms($category);
-				$selected = isset($selectedCats[$category]) ? $selectedCats[$category] : array();
-
-				// create a checkgroup for each taxonomy
-				$form->addField(self::TAX_POST_KEY . '[' . self::get_field_id_name($category) . ']', self::get_field_friendly_name($category), 'checkgroup');
-				$field = $form->getLastField();
-
-				foreach ($terms as $term) {
-					// create options for each term
-					$field->setOption($term->term_id, $term->name);
-
-					// and select if chosen
-					if (in_array($term->term_id, $selected)) {
-						$field->setValue($term->term_id);
-					}
-				}
-
-			}
-
-			$this->formHandlers['__taxonomy'] = $form;
-		} else {
-			$form = $this->formHandlers['__taxonomy'];
-		}
-
-		return $form->getFieldsHTML();
-	}
-
-	/**
 	 * Add a custom callback to be called when records of this type are saved.
 	 * The callback accepts the ID of the post being saved, the post's metadata
 	 * array and the Custom_Post_Type instance as parameters.
@@ -702,17 +654,6 @@ class Custom_Post_Type
 		}
 	}
 
-	private function prehandlePostMeta($postId, $metaFields)
-	{
-		if (!count($this->saveCallbacks)) {
-			return $metaFields;
-		}
-		foreach ($this->saveCallbacks as $cb) {
-			$metaFields = call_user_func($cb, $postId, $metaFields, $this);
-		}
-		return $metaFields;
-	}
-
 	/**
 	 * Update taxonomy terms for a post, but only those provided
 	 *
@@ -936,6 +877,65 @@ class Custom_Post_Type
 		foreach ($options as $opt => $val) {
 			$field->setAttribute($opt, $val);
 		}
+	}
+
+	/**
+	 * Used by form input builders for attachment post types which have no taxonomy UIs
+	 * to retrieve extra fields for outputting on the attachment data page.
+	 */
+	public function __getCategoryInputsForAttachment($attachment, $force = false)
+	{
+		$categories = array();
+		$selectedCats = $this->get_post_terms($attachment->ID);
+
+		foreach ($selectedCats as $tax => $terms) {
+			if (!$terms) continue;
+			foreach ($terms as $i => $term) {
+				$selectedCats[$tax][$i] = $term->term_id;
+			}
+		}
+
+		// create a formIO instance for managing this taxonomy's metadata if not already present
+		if ($force || !isset($this->formHandlers['__taxonomy'])) {
+			$form = new FormIO('', 'POST');
+
+			foreach ($this->taxonomies as $category) {
+				$terms = $this->get_all_terms($category);
+				$selected = isset($selectedCats[$category]) ? $selectedCats[$category] : array();
+
+				// create a checkgroup for each taxonomy
+				$form->addField(self::TAX_POST_KEY . '[' . self::get_field_id_name($category) . ']', self::get_field_friendly_name($category), 'checkgroup');
+				$field = $form->getLastField();
+
+				foreach ($terms as $term) {
+					// create options for each term
+					$field->setOption($term->term_id, $term->name);
+
+					// and select if chosen
+					if (in_array($term->term_id, $selected)) {
+						$field->setValue($term->term_id);
+					}
+				}
+
+			}
+
+			$this->formHandlers['__taxonomy'] = $form;
+		} else {
+			$form = $this->formHandlers['__taxonomy'];
+		}
+
+		return $form->getFieldsHTML();
+	}
+
+	private function prehandlePostMeta($postId, $metaFields)
+	{
+		if (!count($this->saveCallbacks)) {
+			return $metaFields;
+		}
+		foreach ($this->saveCallbacks as $cb) {
+			$metaFields = call_user_func($cb, $postId, $metaFields, $this);
+		}
+		return $metaFields;
 	}
 
 	// name / ID conversion helpers
