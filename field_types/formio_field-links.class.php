@@ -52,11 +52,16 @@ class FormIOField_Links extends FormIOField_Posttypes
 		return $postIds;
 	}
 
+	protected function updateNewUrl($postType)
+	{
+		$this->setAttribute('newItemUrl', AdminMenu::getNewUrl('link'));
+	}
+
 	//--------------------------------------------------------------------------
 
 	protected function addPostTypeVars(&$vars, $link)
 	{
-		$vars['editUrl'] = 'link.php?action=edit&link_id=' . $link->link_id;
+		$vars['editUrl'] = AdminMenu::getEditUrl($link);
 		$vars['linkUrl'] = $link->link_url;
 	}
 

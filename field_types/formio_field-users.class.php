@@ -69,11 +69,16 @@ class FormIOField_Users extends FormIOField_Posttypes
 		return $postIds;
 	}
 
+	protected function updateNewUrl($postType)
+	{
+		$this->setAttribute('newItemUrl', AdminMenu::getNewUrl('user'));
+	}
+
 	//--------------------------------------------------------------------------
 
 	protected function addPostTypeVars(&$vars, $user)
 	{
-		$vars['editUrl'] = 'user-edit.php?user_id=' . $user->ID;
+		$vars['editUrl'] = AdminMenu::getEditUrl($user);
 		$vars['emailAddr'] = $user->data->user_email;
 	}
 

@@ -49,11 +49,16 @@ class FormIOField_Attachments extends FormIOField_Posttypes
 		$this->queryArgs = $args;
 	}
 
+	protected function updateNewUrl($postType)
+	{
+		$this->setAttribute('newItemUrl', AdminMenu::getNewUrl('attachment'));
+	}
+
 	//--------------------------------------------------------------------------
 
 	protected function addPostTypeVars(&$vars, $post)
 	{
-		$vars['editUrl'] = 'media.php?action=edit&attachment_id=' . $post->ID;
+		$vars['editUrl'] = AdminMenu::getEditUrl($post);
 		$vars['viewUrl'] = wp_get_attachment_url($post->ID);
 		if ($this->isImage) {
 			$vars['thumbUrl'] = wp_get_attachment_thumb_url($post->ID);

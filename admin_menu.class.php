@@ -242,6 +242,13 @@ abstract class AdminMenu
 
 	public static function getNewUrl($postType)
 	{
+		if ($postType == 'attachment') {
+			return 'media-new.php';
+		} else if ($postType == 'link') {
+			return 'link-add.php';
+		} else if ($postType == 'user') {
+			return 'user-new.php';
+		}
 		return 'post-new.php?post_type=' . $postType;
 	}
 
