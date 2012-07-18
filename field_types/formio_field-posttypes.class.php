@@ -15,14 +15,7 @@ require_once(FORMIO_FIELDS . 'formio_field-multiple.class.php');
 
 class FormIOField_Posttypes extends FormIOField_Autocomplete
 {
-	public $singleBuildString = '<div class="row{$alt? alt}{$classes? $classes}">
-		<label for="{$id}">{$desc}{$required? <span class="required">*</span>}</label>
-		<input type="text" name="{$name}" id="{$id}"{$value? value="$value"}{$readonly? readonly="readonly"}{$maxlen? maxlength="$maxlen"}{$behaviour? data-fio-type="$behaviour"}{$validation? data-fio-validation="$validation"} data-fio-searchurl="{$searchurl}"{$queryparam? data-fio-queryparam="$queryparam"}{$multiple? data-fio-multiple="$multiple"}{$delimiter? data-fio-delimiter="$delimiter"}{$dependencies? data-fio-depends="$dependencies"} />
-		<a class="new" href="{$newItemUrl}" target="_blank">New</a>
-		{$error?<p class="err">$error</p>}
-		{$hint? <p class="hint">$hint</p>}
-	</div>';
-	public $multiBuildString = '<div class="row{$alt? alt}{$classes? $classes}">
+	public $buildString = '<div class="row{$alt? alt}{$classes? $classes}">
 		<label for="{$id}">{$desc}{$required? <span class="required">*</span>}</label>
 		<input type="hidden" name="{$name}"{$value? value="$value"}{$extradata? data-fio-value-metadata="$extradata"} />
 		<input type="text" name="{$friendlyName}" id="{$id}"{$friendlyValue? value="$friendlyValue"}{$readonly? readonly="readonly"}{$maxlen? maxlength="$maxlen"}{$behaviour? data-fio-type="$behaviour"}{$validation? data-fio-validation="$validation"} data-fio-searchurl="{$searchurl}"{$multiple? data-fio-multiple="$multiple"}{$delimiter? data-fio-delimiter="$delimiter"}{$dependencies? data-fio-depends="$dependencies"} />
