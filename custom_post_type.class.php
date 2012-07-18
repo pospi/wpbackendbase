@@ -22,6 +22,7 @@ class Custom_Post_Type
 
 	public $meta_fields = array();
 	public $taxonomies = array();
+	public $list_columns = array();
 
 	public $formHandlers = array();	// FormIO instances used to render and validate each metabox
 
@@ -388,7 +389,28 @@ class Custom_Post_Type
 				});
 			}
 		}
+	}
 
+	/**
+	 * add columns to the post type's admin list page
+	 *
+	 * @param string $colId          	ID of the column in the post list. Must be globally unique.
+	 * @param string $colLabel       	label of the column
+	 * @param callable $displayHandler 	callback to handle display of the column's cells.
+	 *                               Accepts column ID, post ID and Custom_Post_Type instance as parameters.
+	 * @param callable $orderHandler	callback to handle ordering of the column. When null, the column is not orderable.
+	 *                               	When true, the column ID is passed as the 'orderby' parameter to WP_Query - this is the builtin behaviour for taxonomy compatibility.
+	 *                               Accepts a reference to the array of arguments to WP_Query for premodification.
+	 * @param int	 $displayActionPriority	priority parameter for manage_posts_custom_column hook used in column cell output.
+	 */
+	public function add_list_column($colId, $colLabel, $displayHandler, $orderHandler = null, $displayActionPriority = 10)
+	{
+		$this->list_columns[$colId] = array(
+			'label' => $colLabel,
+			'display' => $displayHandler,
+			'order' => $orderHandler,
+			'priority' => $displayActionPriority,
+		);
 	}
 
 	/**
@@ -485,7 +507,7 @@ class Custom_Post_Type
 			}
 		};
 
-		// bind to appropriate hook
+		// bind to appropriate save hook
 		if ($this->post_type_name != 'attachment') {
 			foreach ($this->saveHooks as $hook) {
 				add_action($hook, $saveMethod);
@@ -497,6 +519,37 @@ class Custom_Post_Type
 			};
 			add_filter('attachment_fields_to_save', $attachmentSaveMethod, 10, 2);
 		}
+
+		// also bind post type column UI hooks
+		add_filter("manage_edit-{$this->post_type_name}_columns", function($defaults) use ($that) {
+			foreach ($that->list_columns as $colId => $args) {
+				$defaults[$colId] = $args['label'];
+			}
+			return $defaults;
+		});
+
+		add_action('manage_posts_custom_column', function($columnId, $postId) use ($that) {
+			if (isset($that->list_columns[$columnId])) {
+				$args = $that->list_columns[$columnId];
+				call_user_func($args['display'], $columnId, $postId, $that);
+			}
+		}, $displayActionPriority, 2);
+
+		add_filter("manage_edit-{$this->post_type_name}_sortable_columns", function($columns) use ($that) {
+			foreach ($that->list_columns as $colId => $args) {
+				$columns[$colId] = $colId;
+			}
+			return $columns;
+		});
+
+		add_filter('request', function($vars) use ($that) {
+			// check that we're dealing with an ordering that our post type supports
+			if ($vars['post_type'] != $that->post_type_name || !isset($vars['orderby']) || !isset($that->list_columns[$vars['orderby']])) {
+				return $vars;
+			}
+
+			return call_user_func($that->list_columns[$vars['orderby']]['order'], $vars);
+		});
 	}
 
 	/**
