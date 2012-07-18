@@ -795,6 +795,15 @@ class Custom_Post_Type
 			}
 			unset($options['validators']);
 		}
+		if (isset($options['custom_validators'])) {
+			foreach ($options['custom_validators'] as $valOpts) {
+				$field->addValidator($valOpts['callback'],
+					isset($valOpts['args']) ? (is_array($valOpts['args']) ? $valOpts['args'] : array($valOpts['args'])) : array(),
+					true, $valOpts['msg']
+				);
+			}
+			unset($options['custom_validators']);
+		}
 
 		// set any dependencies present
 		if (isset($options['dependencies'])) {
