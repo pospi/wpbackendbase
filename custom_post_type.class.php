@@ -468,7 +468,7 @@ class Custom_Post_Type
 
 			if ( isset($_POST[Custom_Post_Type::NONCE_FIELD_NAME]) && ! wp_verify_nonce( $_POST[Custom_Post_Type::NONCE_FIELD_NAME], plugin_basename(__FILE__) ) ) return;
 
-			if( isset( $_POST[Custom_Post_Type::META_POST_KEY] ) && $postId && ((get_post_type($postId) == $post_type_name) || (get_post_type($postId) === false && $post_type_name == 'user')) ) {
+			if( isset( $_POST[Custom_Post_Type::META_POST_KEY] ) && $postId && ((get_post_type($postId) == $post_type_name) || ((get_post_type($postId) === false || get_post_type($postId) === 'post') && $post_type_name == 'user')) ) {
 				$that->update_post_meta($postId, $_POST[Custom_Post_Type::META_POST_KEY]);
 			}
 
