@@ -15,25 +15,30 @@ class FormIOField_Filesize extends FormIOField_Readonly
 		{$hint? <p class="hint">$hint</p>}
 	</div>';
 
-	protected function getBuilderVars()
+	public static function formatBytes($byteVal)
 	{
-		$inputVars = parent::getBuilderVars();
+		$orders = array('bytes',
+			'<abbr title="1 kibibyte = 2^10 bytes = 1024 bytes">KiB</abbr>',
+			'<abbr title="1 mebibyte = 2^20 bytes = 1024 kibibytes = 1,048,576 bytes">MiB</abbr>',
+			'<abbr title="1 gibibyte = 2^30 bytes = 1024 mebibytes = 1,073,741,824 bytes">GiB</abbr>',
+		);
 
-		$byteVal = $this->value;
 		$order = 0;
-		while ($byteVal > 1024) {
+		while ($byteVal > 1024 && isset($orders[$order + 1])) {
 			$byteVal = round($byteVal / 1024) + (($byteVal % 1024) / 1024);
 			$order++;
 		}
 
-		$orders = array('bytes',
-					'<abbr title="1 kibibyte = 2^10 bytes = 1024 bytes">KiB</abbr>',
-					'<abbr title="1 mebibyte = 2^20 bytes = 1024 kibibytes = 1,048,576 bytes">MiB</abbr>',
-					'<abbr title="1 gibibyte = 2^30 bytes = 1024 mebibytes = 1,073,741,824 bytes">GiB</abbr>',
-				);
 		$byteVal = round($byteVal, 2);
 
-		$inputVars['value'] = "$byteVal {$orders[$order]}";
+		return "$byteVal {$orders[$order]}";
+	}
+
+	protected function getBuilderVars()
+	{
+		$inputVars = parent::getBuilderVars();
+
+		$inputVars['value'] = self::formatBytes($this->value);
 		$inputVars['escapedvalue'] = htmlentities($this->value);
 
 		return $inputVars;
