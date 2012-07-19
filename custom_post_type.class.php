@@ -158,6 +158,10 @@ class Custom_Post_Type
 		}
 	}
 
+	//---------------------------------------------------------------------------------
+	// data configuration
+	//---------------------------------------------------------------------------------
+
 	/* Method to attach the taxonomy to the post type */
 	public function add_taxonomy( $name, $args = array(), $labels = array() )
 	{
@@ -423,6 +427,10 @@ class Custom_Post_Type
 		$this->saveCallbacks[] = $callback;
 	}
 
+	//---------------------------------------------------------------------------------
+	// post data handling
+	//---------------------------------------------------------------------------------
+
 	/* Listens for when the post type being saved */
 	public function save()
 	{
@@ -473,21 +481,52 @@ class Custom_Post_Type
 		}
 
 		// also bind post type column UI hooks
-		add_filter("manage_edit-{$this->post_type_name}_columns", function($defaults) use ($that) {
+		$headerHook = "manage_edit-{$this->post_type_name}_columns";
+		$cellHook = 'manage_posts_custom_column';
+		$sortHook = "manage_edit-{$this->post_type_name}_sortable_columns";
+		switch ($this->post_type_name) {
+			case 'attachment':
+				$headerHook = 'manage_media_columns';
+				$cellHook = 'manage_media_custom_column';
+				$sortHook = "manage_upload_sortable_columns";
+				break;
+			case 'user':
+				$headerHook = 'manage_users_columns';
+				$cellHook = 'manage_users_custom_column';
+				$sortHook = "manage_users_sortable_columns";
+				break;
+			case 'page':
+				$cellHook = 'manage_pages_custom_column';
+				break;
+		}
+
+		add_filter($headerHook, function($defaults) use ($that) {
 			foreach ($that->list_columns as $colId => $args) {
 				$defaults[$colId] = $args['label'];
 			}
 			return $defaults;
 		});
 
-		add_action('manage_posts_custom_column', function($columnId, $postId) use ($that) {
-			if (isset($that->list_columns[$columnId])) {
-				$args = $that->list_columns[$columnId];
-				call_user_func($args['display'], $columnId, $postId, $that);
-			}
-		}, $displayActionPriority, 2);
+		if ($this->post_type_name != 'user') {
+			// normal list cell hooks simply echo the data - we echo them ourselves to standardise the display callbacks
+			add_action($cellHook, function($columnId, $postId) use ($that) {
+				if (isset($that->list_columns[$columnId])) {
+					$args = $that->list_columns[$columnId];
+					echo call_user_func($args['display'], $columnId, $postId, $that);
+				}
+			}, $displayActionPriority, 2);
+		} else {
+			// user list cell hooks must return the data, so we pass the return value of the display callback back
+			add_action($cellHook, function($val, $columnId, $userId) use ($that) {
+				if (isset($that->list_columns[$columnId])) {
+					$args = $that->list_columns[$columnId];
+					return call_user_func($args['display'], $columnId, $userId, $that);
+				}
+				return $val;
+			}, $displayActionPriority, 3);
+		}
 
-		add_filter("manage_edit-{$this->post_type_name}_sortable_columns", function($columns) use ($that) {
+		add_filter($sortHook, function($columns) use ($that) {
 			foreach ($that->list_columns as $colId => $args) {
 				$columns[$colId] = $colId;
 			}
@@ -668,6 +707,10 @@ class Custom_Post_Type
 		}
 	}
 
+	//---------------------------------------------------------------------------------
+	// post type interface accessors
+	//---------------------------------------------------------------------------------
+
 	public function get_post_meta_fields()
 	{
 		$fields = array();
@@ -695,6 +738,10 @@ class Custom_Post_Type
 			return WP_Taxonomy::get_terms($taxonomy, array('hide_empty' => 0));
 		}
 	}
+
+	//---------------------------------------------------------------------------------
+	// save submission handling
+	//---------------------------------------------------------------------------------
 
 	public function get_metabox_form_output($boxName, Array $meta = null, $post = null)
 	{
@@ -947,7 +994,9 @@ class Custom_Post_Type
 		return $metaFields;
 	}
 
+	//---------------------------------------------------------------------------------
 	// name / ID conversion helpers
+	//---------------------------------------------------------------------------------
 
 	public function get_friendly_name($plural = false)
 	{
@@ -968,8 +1017,9 @@ class Custom_Post_Type
 		return ucwords( str_replace( '_', ' ', $label ) );
 	}
 
-	//----------------------------------------------------------------------------------------------------------------------------------------------------
-	//	read post types created via this interface
+	//---------------------------------------------------------------------------------
+	//	accessor to read post type objects created via this interface
+	//---------------------------------------------------------------------------------
 
 	public static function get_post_type($name)
 	{
