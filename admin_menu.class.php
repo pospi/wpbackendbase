@@ -20,30 +20,6 @@ abstract class AdminMenu
 
 	public static function __handle()
 	{
-		// override any builtin menu entries that need direct modification first
-		global $submenu;
-		foreach (self::$menusToOverride as $menuSlug => $submenus) {
-			if (!isset($submenu[$menuSlug])) {
-				// ignore if the menu didn't exist
-				continue;
-			}
-			foreach ($submenus as $subTitle => $newData) {
-				// locate the submenu entry
-				foreach ($submenu[$menuSlug] as $id => $data) {
-					if ($data[0] == $subTitle) {
-						// found it - change its options
-						$submenu[$menuSlug][$id] = array(
-							$newData['title'],
-							$newData['capability'],
-							$newData['url'],
-							$newData['menu_title'],
-						);
-						break;
-					}
-				}
-			}
-		}
-
 		// remove top-level menu entries, or subpages (we don't need to do both for nodes on the same branch)
 		foreach (self::$menusToRemove as $menuSlug => $args) {
 			if (count($args['subpages'])) {
@@ -56,16 +32,58 @@ abstract class AdminMenu
 			remove_menu_page($menuSlug);
 		}
 
-		// finally, add new top-level menu entries
+		// add all new menu entries
 		foreach (self::$menusToAdd as $title => $args) {
-			// do not add top-level entries only there as placeholders for new subentries
+			// build notifications output
+			$notificationStr = self::getNotificationStr(isset($args['notification_count']) ? $args['notification_count'] : 0, isset($args['child_notifications']) ? $args['child_notifications'] : 0);
+
 			if (empty($args['preexisting'])) {
-				add_menu_page($title, $args['menu_title'], $args['capability'], $args['slug'], $args['function'], $args['icon_url'], $args['position']);
+				// add top-level entries not already present
+				add_menu_page($title, $args['menu_title'] . $notificationStr, $args['capability'], $args['slug'], $args['function'], $args['icon_url'], $args['position']);
+			} else if ($notificationStr) {
+				// add notification output suffixes to preexisting menu entries
+				global $menu;
+				foreach ($menu as $k => &$entry) {
+					if ($entry[2] == $title) {
+						$entry[0] .= $notificationStr;
+						break;
+					}
+				}
 			}
 
 			if ($args['subpages']) {
 				foreach ($args['subpages'] as $sTitle => $sArgs) {
-					add_submenu_page(isset($args['slug']) ? $args['slug'] : Custom_Post_Type::get_field_id_name($title), $sTitle, $sArgs['menu_title'], $sArgs['capability'], $sArgs['slug'], $sArgs['function']);
+					$notificationStr = self::getNotificationStr(isset($args['notification_count']) ? $args['notification_count'] : 0);
+					add_submenu_page(isset($args['slug']) ? $args['slug'] : Custom_Post_Type::get_field_id_name($title), $sTitle, $sArgs['menu_title'] . $notificationStr, $sArgs['capability'], $sArgs['slug'], $sArgs['function']);
+				}
+			}
+		}
+
+		// override any builtin (or newly created) menu entries that need direct modification
+		global $submenu;
+		foreach (self::$menusToOverride as $menuSlug => $submenus) {
+			if (!isset($submenu[$menuSlug])) {
+				// ignore if the menu didn't exist
+				continue;
+			}
+			foreach ($submenus as $subTitle => $newData) {
+				// locate the submenu entry
+				foreach ($submenu[$menuSlug] as $id => $data) {
+					if (Custom_Post_Type::get_field_id_name($data[0]) == Custom_Post_Type::get_field_id_name($subTitle)) {
+						$notificationStr = self::getNotificationStr(isset($newData['notification_count']) ? $newData['notification_count'] : 0);
+						// found it - change its options
+						if (!empty($newData['preexisting'])) {
+							$submenu[$menuSlug][$id][0] .= $notificationStr;
+						} else {
+							$submenu[$menuSlug][$id] = array(
+								$newData['title'],
+								$newData['capability'],
+								$newData['url'],
+								$newData['menu_title'] . $notificationStr,
+							);
+						}
+						break;
+					}
 				}
 			}
 		}
@@ -235,6 +253,57 @@ abstract class AdminMenu
 	{
 		$ptClass = Custom_Post_Type::get_post_type($postType);
 		self::overrideSubmenu(self::getListUrl($postType), 'Add New', $label, $urlOrCb, $capability, $menuTitle);
+	}
+
+	//--------------------------------------------------------------------------
+	// notification bubble helpers
+
+	public static function addMenuNotification($menuLabel, $count, $isChildPageIndicator = false)
+	{
+		$slug = Custom_Post_Type::get_field_id_name($menuLabel);
+
+		if (!isset(self::$menusToAdd[$menuLabel])) {
+			self::$menusToAdd[$menuLabel] = array(
+				'preexisting' => true,
+			);
+		}
+
+		if ($isChildPageIndicator) {
+			self::$menusToAdd[$menuLabel]['child_notifications'] = (isset(self::$menusToAdd[$menuLabel]['child_notifications']) ? self::$menusToAdd[$menuLabel]['child_notifications'] : 0) + $count;
+		} else {
+			self::$menusToAdd[$menuLabel]['notification_count'] = (isset(self::$menusToAdd[$menuLabel]['notification_count']) ? self::$menusToAdd[$menuLabel]['notification_count'] : 0) + $count;
+		}
+	}
+
+	public static function addSubmenuNotification($menuLabel, $submenuLabel, $count, $showInParent = true)
+	{
+		$parentSlug = Custom_Post_Type::get_field_id_name($menuLabel);
+		$slug = Custom_Post_Type::get_field_id_name($submenuLabel);
+
+		if (isset(self::$menusToAdd[$menuLabel]['subpages'][$submenuLabel])) {
+			self::$menusToAdd[$menuLabel]['subpages'][$submenuLabel]['notification_count'] = (isset(self::$menusToAdd[$menuLabel]['subpages'][$submenuLabel]['notification_count']) ? self::$menusToAdd[$menuLabel]['subpages'][$submenuLabel]['notification_count'] : 0) + $count;
+		} else if (isset(self::$menusToOverride[$parentSlug][$submenuLabel])) {
+			self::$menusToOverride[$parentSlug][$submenuLabel]['notification_count'] = (isset(self::$menusToOverride[$parentSlug][$submenuLabel]['notification_count']) ? self::$menusToOverride[$parentSlug][$submenuLabel]['notification_count'] : 0) + $count;
+		} else {
+			self::$menusToOverride[$parentSlug][$submenuLabel] = array(
+				'preexisting' => true,
+				'notification_count' => $count,
+			);
+		}
+
+		if ($showInParent) {
+			self::addMenuNotification($menuLabel, $count, true);
+		}
+	}
+
+	private static function getNotificationStr($count, $childCount = 0)
+	{
+		if (!$count && !$childCount) {
+			return '';
+		}
+
+		$onlyChildren = $childCount && !$count;
+		return ' <span class="update-plugins ' . ($onlyChildren ? 'faded ' : '') . 'count-' . ($count+$childCount) . '"><span class="plugin-count"' . ($childCount ? ' title="'.$childCount.' items require your attention in child pages"' : '') . '>' . ($childCount ? ($count ? "$count ($childCount)" : $childCount) : $count) . '</span></span>';
 	}
 
 	//--------------------------------------------------------------------------

@@ -91,6 +91,17 @@ li.token-input-token.img .token-input-delete-token {
 	width: auto;
 }
 
+
+/*-----------------------------------------------------------------------*/
+/* extra admin notification icon classes */
+
+#adminmenu li .update-plugins.faded,
+#adminmenu li a.wp-has-current-submenu .update-plugins.faded {
+	background: #EEE;
+	color: #444;
+	border: 2px solid #464646;
+}
+
 /*-----------------------------------------------------------------------*/
 /* TODO list helper class for outputting dev notes in-page */
 
