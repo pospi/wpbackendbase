@@ -507,11 +507,11 @@ class Custom_Post_Type
 		}
 
 		add_filter($headerHook, function($defaults) use ($that) {
-			foreach ($that->list_columns as $colId => $args) {
-				$defaults[$colId] = $args['label'];
-			}
 			foreach ($that->removed_list_columns as $colId) {
 				unset($defaults[$colId]);
+			}
+			foreach ($that->list_columns as $colId => $args) {
+				$defaults[$colId] = $args['label'];
 			}
 			return $defaults;
 		});
