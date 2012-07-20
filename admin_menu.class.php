@@ -53,7 +53,7 @@ abstract class AdminMenu
 
 			if ($args['subpages']) {
 				foreach ($args['subpages'] as $sTitle => $sArgs) {
-					$notificationStr = self::getNotificationStr(isset($args['notification_count']) ? $args['notification_count'] : 0);
+					$notificationStr = self::getNotificationStr(isset($sArgs['notification_count']) ? $sArgs['notification_count'] : 0);
 					add_submenu_page(isset($args['slug']) ? $args['slug'] : Custom_Post_Type::get_field_id_name($title), $sTitle, $sArgs['menu_title'] . $notificationStr, $sArgs['capability'], $sArgs['slug'], $sArgs['function']);
 				}
 			}
