@@ -29,7 +29,8 @@ if (is_admin()) {
 	add_action(FormIOField_Posttypes::AJAX_HOOK_NAME, 'FormIOField_Posttypes::__responseHandler');
 
 	// admin menu builder helper class
-	require_once(POSPI_PLUGIN_BASE . "/admin_menu.class.php");
+	require_once(POSPI_PLUGIN_BASE . "/admin_menu.class.php");	// menu builders
+	require_once(POSPI_PLUGIN_BASE . "/admin_ui.class.php");	// interface builders & custom page handlers
 
 	// option to make your site's commit history visible to clients
 	define('SITE_GIT_REPO_DIR', ABSPATH . 'wp-content/');
