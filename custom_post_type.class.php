@@ -22,8 +22,10 @@ class Custom_Post_Type
 
 	public $meta_fields = array();
 	public $taxonomies = array();
+
 	public $list_columns = array();
 	public $removed_list_columns = array();
+	private $displayActionPriority = 10;	// :NOTE: because we run all our columns together, they must all be next to one another
 
 	public $formHandlers = array();	// FormIO instances used to render and validate each metabox
 
@@ -414,8 +416,9 @@ class Custom_Post_Type
 			'label' => $colLabel,
 			'display' => $displayHandler,
 			'order' => $orderHandler,
-			'priority' => $displayActionPriority,
 		);
+		// set the column start offset for all our column output
+		$this->displayActionPriority = $displayActionPriority;
 	}
 
 	public function remove_list_column($colId)
@@ -523,7 +526,7 @@ class Custom_Post_Type
 					$args = $that->list_columns[$columnId];
 					echo call_user_func($args['display'], $columnId, $postId, $that);
 				}
-			}, $displayActionPriority, 2);
+			}, $this->displayActionPriority, 2);
 		} else {
 			// user list cell hooks must return the data, so we pass the return value of the display callback back
 			add_action($cellHook, function($val, $columnId, $userId) use ($that) {
@@ -532,7 +535,7 @@ class Custom_Post_Type
 					return call_user_func($args['display'], $columnId, $userId, $that);
 				}
 				return $val;
-			}, $displayActionPriority, 3);
+			}, $this->displayActionPriority, 3);
 		}
 
 		add_filter($sortHook, function($columns) use ($that) {
@@ -913,7 +916,7 @@ class Custom_Post_Type
 		// set post type and query options for post type fields
 		else if (in_array($type, array('posttypes', 'links', 'attachments', 'users'))) {
 			// handle query arg callbacks
-			if ($options['query_args'] instanceof Closure) {
+			if (isset($options['query_args']) && $options['query_args'] instanceof Closure) {
 				$args = $options['query_args'];
 				$args = $args($post, $meta);
 			} else {
