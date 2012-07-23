@@ -1041,6 +1041,10 @@ class Custom_Post_Type
 	{
 		if (isset(self::$postTypeRegister[$name])) {
 			return self::$postTypeRegister[$name];
+		} else if ((function_exists('post_type_exists') && post_type_exists($name)) || WP_Core::post_type_exists($name)) {
+			return new Custom_Post_Type($name);		// create a wrapper for builtin post types automatically if not already inited
+		} else if ($name == 'user') {
+			return new Custom_Post_Type('user');	// same, for users.
 		}
 		return null;
 	}
