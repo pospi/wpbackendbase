@@ -48,6 +48,20 @@
 						},
 						tokenFormatter : function(item) {
 							return "<li class=\"img\"><div><img src=\"" + item.thumbUrl + "\" /></div><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></p></li>";
+						},
+						// refresh or create parallax image input viewports when added to the input list
+						onAdd : function(item) {
+							var that = this;
+							setTimeout(function() {
+								that.prev('.token-input-list').find('div').each(function(i, imgVp) {
+									var vp;
+									if (vp = $(imgVp).data('jcparallax-viewport')) {
+										vp.refreshCoords();
+									} else {
+										initThumbParallax($(imgVp));
+									}
+								});
+							}, 100);
 						}
 					});
 				},
@@ -81,20 +95,24 @@
 		});
 
 		// load parallax preview of image attachments
-		initThumbParallax($('ul.token-input-list li.img img'), $('ul.token-input-list li.img div'));
+		initThumbParallax($('ul.token-input-list li.img div'));
 	});
 
 	//--------------------------------------------------------------------------
 	// helpers
 	//--------------------------------------------------------------------------
 
-	function initThumbParallax(els, mouseports) {
-		els.each(function(i) {
-			$(this).parallax({
-				xparallax: false,
-				yparallax: -1,
-				mouseport: mouseports.get(i)
-			});
+	function initThumbParallax(els) {
+		els.jcparallax({
+			layerSelector: 'img',
+			// y-axis movement only
+			inputHandler: function(el, evt) {
+				var yPos = evt.pageY - this.viewport.offsetY;
+
+				this.updateLastSamplePos(0, yPos / this.viewport.sizeY);
+			},
+			inputEvent: 'mousemove',
+			animHandler: 'position'
 		});
 	}
 

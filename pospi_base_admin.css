@@ -69,6 +69,8 @@ ul.token-input-list li div img {
 	position: absolute;
 	display: block;
 	top: -45px;
+	width: 150px;
+	height: 150px;
 }
 
 li.token-input-token.img .token-input-delete-token {

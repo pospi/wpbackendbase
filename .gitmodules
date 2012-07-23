@@ -1,3 +1,6 @@
 [submodule "formio"]
 	path = formio
 	url = git@github.com:pospi/formio.git
+[submodule "jcparallax"]
+	path = jcparallax
+	url = /home/pospi/git/jc-parallax.git

@@ -53,10 +53,16 @@ add_action('admin_enqueue_scripts',function(){
 	wp_register_script('formio', plugins_url('formio/formio.js', __FILE__), array('jquery_tokeninput'));
 	wp_enqueue_script('formio');
 
-	wp_register_script('jquery.event.frame', includes_url('jparallax/js/jquery.event.frame.js', __FILE__), array('jquery'));
-	wp_enqueue_script('jquery.event.frame');
-	wp_register_script('jparallax', includes_url('jparallax/js/jquery.parallax.js', __FILE__), array('jquery.event.frame'));
-	wp_enqueue_script('jparallax');
+	wp_register_script('jcparallax', plugins_url('jc-parallax/jcparallax.js', __FILE__), array('jquery'));
+	wp_enqueue_script('jcparallax');
+	wp_register_script('jcparallax-t', plugins_url('jc-parallax/jcp-transitioninterval.js', __FILE__), array('jquery', 'jcparallax'));
+	wp_enqueue_script('jcparallax-t');
+	wp_register_script('jcparallax-a', plugins_url('jc-parallax/jcp-animator.js', __FILE__), array('jquery', 'jcparallax-t'));
+	wp_enqueue_script('jcparallax-a');
+	wp_register_script('jcparallax-l', plugins_url('jc-parallax/jcp-layer.js', __FILE__), array('jquery', 'jcparallax-a'));
+	wp_enqueue_script('jcparallax-l');
+	wp_register_script('jcparallax-vp', plugins_url('jc-parallax/jcp-viewport.js', __FILE__), array('jquery', 'jcparallax-l'));
+	wp_enqueue_script('jcparallax-vp');
 
 	wp_register_script('pospi-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio'));
 	wp_enqueue_script('pospi-admin-js');
@@ -72,6 +78,9 @@ add_action( 'admin_init', function() {
     wp_enqueue_style('formio_css');
     wp_register_style('formio_theme_css', plugins_url('formio/themes/wordpress.css', __FILE__));
     wp_enqueue_style('formio_theme_css');
+
+	wp_register_style('jcparallax_css', plugins_url('jc-parallax/jcparallax.css', __FILE__));
+	wp_enqueue_style('jcparallax_css');
 
     wp_register_style('pospi_admin_base_css', plugins_url('pospi_base_admin.css', __FILE__));
     wp_enqueue_style('pospi_admin_base_css');
