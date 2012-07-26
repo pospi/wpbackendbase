@@ -14,6 +14,7 @@ class Custom_Post_Type
 	const NONCE_FIELD_NAME = 'custom_post_type';
 	const META_POST_KEY = 'custom_meta';
 	const TAX_POST_KEY = 'tax_input';	// used by media post types to reimplement taxonomies
+	const IS_USER_SAVE_FLAG = 'custom_post_type_is_user';
 
 	public $post_type_name;
 	public $post_type_name_plural;
@@ -305,6 +306,10 @@ class Custom_Post_Type
 
 					// Write a nonce field for some validation
 					wp_nonce_field( plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME );
+					// add a hidden input to indicate a user is being update if necessary - this is not determinable easily otherwise
+					if ($that->post_type_name == 'user') {
+						echo "<input type=\"hidden\" name=\"" . Custom_Post_Type::IS_USER_SAVE_FLAG . "\" value=\"1\" />";
+					}
 
 					// draw the box's inputs
 					echo $that->get_metabox_form_output($metaBoxId, $meta, $post);
@@ -316,6 +321,10 @@ class Custom_Post_Type
 				$metaboxDrawCb = function($user) use ($box_id, $box_title, $that) {
 					// Write a nonce field for some validation
 					wp_nonce_field(plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME);
+					// add a hidden input to indicate a user is being update if necessary - this is not determinable easily otherwise
+					if ($that->post_type_name == 'user') {
+						echo "<input type=\"hidden\" name=\"" . Custom_Post_Type::IS_USER_SAVE_FLAG . "\" value=\"1\" />";
+					}
 
 					// get the logged in user's roles for assigning form classes
 					$roles = array();
@@ -342,6 +351,10 @@ class Custom_Post_Type
 				$metaboxDrawCb = function($formFields, $post) use ($box_id, $box_title, $that) {
 					// Write a nonce field for some validation
 					wp_nonce_field(plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME);
+					// add a hidden input to indicate a user is being update if necessary - this is not determinable easily otherwise
+					if ($that->post_type_name == 'user') {
+						echo "<input type=\"hidden\" name=\"" . Custom_Post_Type::IS_USER_SAVE_FLAG . "\" value=\"1\" />";
+					}
 
 					// Get the saved values
 					$meta = $that->get_post_meta( $post->ID );
@@ -499,21 +512,23 @@ class Custom_Post_Type
 		$that = $this;
 		$saveMethod = function($postId) use( $that, $post_type_name )
 		{
+			// determine the type of posts, since we want to be able to target similar objects as posts...
+			$thisPt = get_post_type($postId);
+			if ((!$thisPt || $thisPt === 'post') && !empty($_POST[Custom_Post_Type::IS_USER_SAVE_FLAG])) {
+				$thisPt = 'user';
+			}
+
 			// If doing the wordpress autosave function, ignore...
 			if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 
 			if ( isset($_POST[Custom_Post_Type::NONCE_FIELD_NAME]) && ! wp_verify_nonce( $_POST[Custom_Post_Type::NONCE_FIELD_NAME], plugin_basename(__FILE__) ) ) return;
 
-			if( isset( $_POST[Custom_Post_Type::META_POST_KEY] ) && $postId && ((get_post_type($postId) == $post_type_name) || ((get_post_type($postId) === false || get_post_type($postId) === 'post') && $post_type_name == 'user')) ) {
+			if( isset( $_POST[Custom_Post_Type::META_POST_KEY] ) && $postId && $thisPt == $post_type_name ) {
 				$that->update_post_meta($postId, $_POST[Custom_Post_Type::META_POST_KEY]);
 			}
 
-			// special case for handling taxonomy updates for users - this is not builtin
-			$thisPt = get_post_type($postId);
-			if ($thisPt === 'post' && isset($_POST['from']) && $_POST['from'] == 'profile') {
-				$thisPt = 'user';
-			}
-			if (($thisPt == 'user' || $thisPt == 'attachment') && $thisPt == $post_type_name && isset($_POST[Custom_Post_Type::TAX_POST_KEY])) {
+			// special case for handling taxonomy updates for users & attachments - this is not builtin
+			if (isset($_POST[Custom_Post_Type::TAX_POST_KEY]) && ($thisPt == 'user' || $thisPt == 'attachment') && $thisPt == $post_type_name) {
 				$taxonomies = array();
 				foreach ($_POST[Custom_Post_Type::TAX_POST_KEY] as $tax => $termIds) {
 					if (is_array($termIds)) {
