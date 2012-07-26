@@ -13,7 +13,7 @@ class Custom_Post_Type
 	const ERROR_SESSION_STORAGE = 'custom_post_errors';
 	const NONCE_FIELD_NAME = 'custom_post_type';
 	const META_POST_KEY = 'custom_meta';
-	const TAX_POST_KEY = 'custom_tax';	// used by media post types to reimplement taxonomies
+	const TAX_POST_KEY = 'tax_input';	// used by media post types to reimplement taxonomies
 
 	public $post_type_name;
 	public $post_type_name_plural;
@@ -508,14 +508,15 @@ class Custom_Post_Type
 				$that->update_post_meta($postId, $_POST[Custom_Post_Type::META_POST_KEY]);
 			}
 
-			// special case for handling taxonomy updates for attachments - this is not builtin
-			if (isset($_POST[Custom_Post_Type::TAX_POST_KEY]) && $postId && get_post_type($postId) == $post_type_name) {
+			// special case for handling taxonomy updates for users - this is not builtin
+			$thisPt = get_post_type($postId);
+			if (($thisPt == 'user' || $thisPt == 'attachment') && $thisPt == $post_type_name && isset($_POST[Custom_Post_Type::TAX_POST_KEY])) {
 				$taxonomies = array();
 				foreach ($_POST[Custom_Post_Type::TAX_POST_KEY] as $tax => $termIds) {
-					$taxonomies[$tax] = array();
-					foreach ($termIds as $termId => $ignored) {
-						$taxonomies[$tax][] = $termId;
+					if (is_array($termIds)) {
+						$termIds = array_map('intval', $termIds);
 					}
+					$taxonomies[$tax] = $termIds;
 				}
 				$that->update_post_terms($postId, $taxonomies);
 			}
@@ -754,7 +755,7 @@ class Custom_Post_Type
 	 * Update taxonomy terms for a post, but only those provided
 	 *
 	 * @param  int    $postId ID of the post to update
-	 * @param  Array  $terms  array of term IDs keyed by taxonomy name
+	 * @param  Array  $terms  array of term IDs keyed by taxonomy name, or array of comma separated list of term names
 	 * @param  bool	  $append if false, existing term values will be erased
 	 */
 	public function update_post_terms($postId, Array $taxTerms, $append = false)
@@ -1034,12 +1035,14 @@ class Custom_Post_Type
 
 	public static function get_post_type($name)
 	{
+		$existsFn = function_exists('post_type_exists') ? 'post_type_exists' : 'WP_Core::post_type_exists';
+
 		if (isset(self::$postTypeRegister[$name])) {
 			return self::$postTypeRegister[$name];
-		} else if ((function_exists('post_type_exists') && post_type_exists($name)) || WP_Core::post_type_exists($name)) {
-			return new Custom_Post_Type($name);		// create a wrapper for builtin post types automatically if not already inited
 		} else if ($name == 'user') {
-			return new Custom_Post_Type('user');	// same, for users.
+			return new Custom_Post_Type('user');	// create a wrapper for users automatically if not already inited
+		} else if (call_user_func($existsFn, $name)) {
+			return new Custom_Post_Type($name);		// same, for builtin post types
 		}
 		return null;
 	}

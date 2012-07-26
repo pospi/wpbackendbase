@@ -96,13 +96,23 @@ abstract class AdminUI
 
 	public static function addTaxonomyMetabox($postType, $taxonomy)
 	{
+		$taxonomyObj = get_taxonomy($taxonomy);
+
+		if ($taxonomyObj === false) {
+			add_action('registered_taxonomy', function($regdTaxonomy) use ($postType, $taxonomy) {
+				if ($taxonomy == $regdTaxonomy) {
+					AdminUI::addTaxonomyMetabox($postType, $taxonomy);
+				}
+			});
+			return;
+		}
+
 		// allow passing a CPT object or post type name
 		if (!$postType instanceof Custom_Post_Type) {
 			$postType = Custom_Post_Type::get_post_type($postType);
 		}
 
 		// read taxonomy name for the metabox title
-		$taxonomyObj = get_taxonomy($taxonomy);
 		$label = $taxonomyObj->labels->name;
 
 		// ensure we have the callbacks loaded

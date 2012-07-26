@@ -101,13 +101,24 @@
 		//--------------------------------------------------------------------------
 		// custom taxonomy inputs for non-post pages
 
+		function initTagBoxes()
+		{
+			tagBox.init();
+			// save tags on post save/publish
+			$('.tagsdiv').closest('form').submit(function(){
+				$('div.tagsdiv', this).each(function() {
+					tagBox.flushTags(this, false, 1);
+				});
+			});
+		}
+
 		if ( !$('#tagsdiv-post_tag').length ) {
 			if ($('.tagsdiv').length) {
-				tagBox.init();
+				initTagBoxes();
 			} else {
 				$('#side-sortables, #normal-sortables, #advanced-sortables').children('div.postbox').each(function(){
 					if ( this.id.indexOf('tagsdiv-') !== 0 && $(this).hasClass('tagsdiv') ) {
-						tagBox.init();
+						initTagBoxes();
 						return false;
 					}
 				});
