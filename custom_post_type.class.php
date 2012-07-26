@@ -510,6 +510,9 @@ class Custom_Post_Type
 
 			// special case for handling taxonomy updates for users - this is not builtin
 			$thisPt = get_post_type($postId);
+			if ($thisPt === 'post' && isset($_POST['from']) && $_POST['from'] == 'profile') {
+				$thisPt = 'user';
+			}
 			if (($thisPt == 'user' || $thisPt == 'attachment') && $thisPt == $post_type_name && isset($_POST[Custom_Post_Type::TAX_POST_KEY])) {
 				$taxonomies = array();
 				foreach ($_POST[Custom_Post_Type::TAX_POST_KEY] as $tax => $termIds) {
