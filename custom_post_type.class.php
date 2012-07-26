@@ -66,7 +66,7 @@ class Custom_Post_Type
 
 		// override some values when managing user metadata
 		if ($this->post_type_name == 'user') {
-			$this->saveHooks = array('profile_update', 'personal_options_update', 'edit_user_profile_update');
+			$this->saveHooks = array('profile_update', 'edit_user_profile_update');
 		}
 
 		// Listen for the save post hook
