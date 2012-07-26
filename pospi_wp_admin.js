@@ -14,6 +14,7 @@
 			return fldId.replace(new RegExp('^custom_meta_'), '');
 		};
 
+		//--------------------------------------------------------------------------
 		// init form UI javascript
 
 		function initUrlInput(el) {
@@ -96,6 +97,22 @@
 
 		// load parallax preview of image attachments
 		initThumbParallax($('ul.token-input-list li.img div'));
+
+		//--------------------------------------------------------------------------
+		// custom taxonomy inputs for non-post pages
+
+		if ( !$('#tagsdiv-post_tag').length ) {
+			if ($('.tagsdiv').length) {
+				tagBox.init();
+			} else {
+				$('#side-sortables, #normal-sortables, #advanced-sortables').children('div.postbox').each(function(){
+					if ( this.id.indexOf('tagsdiv-') !== 0 && $(this).hasClass('tagsdiv') ) {
+						tagBox.init();
+						return false;
+					}
+				});
+			}
+		}
 	});
 
 	//--------------------------------------------------------------------------

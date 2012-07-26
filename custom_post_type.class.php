@@ -268,7 +268,7 @@ class Custom_Post_Type
 	}
 
 	/* Attaches meta boxes to the post type */
-	public function add_meta_box( $title, $fields = array(), $context = 'normal', $priority = 'default' )
+	public function add_meta_box( $title, $fields = array(), $context = 'normal', $priority = 'default', $cbArgs = null )
 	{
 		if( ! empty( $title ) )
 		{
@@ -289,42 +289,26 @@ class Custom_Post_Type
 			}
 
 			$that = $this;
+			$metaboxDrawCb = null;
 
 			// output the metabox for our post type on the admin screen
 			if ($this->post_type_name != 'user' && $this->post_type_name != 'attachment') {
 
 				// --- STANDARD POST TYPE SCREEN ---
 
-				add_action('admin_init', function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields, $that )
-				{
-					add_meta_box(
-						$box_id,
-						$box_title,
-						function( $post, $data ) use ($that)
-						{
-							$metaBoxId = $data['id'];
+				$metaboxDrawCb = function( $post, $data ) use ($that) {
+					// read metabox ID
+					$metaBoxId = $data['id'];
 
-							// Get the saved values
-							$meta = $that->get_post_meta( $post->ID );
+					// Get the saved values
+					$meta = $that->get_post_meta( $post->ID );
 
-							// Write a nonce field for some validation
-							wp_nonce_field( plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME );
+					// Write a nonce field for some validation
+					wp_nonce_field( plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME );
 
-							// draw the box's inputs
-							echo $that->get_metabox_form_output($metaBoxId, $meta, $post);
-						},
-						$post_type_name,
-						$box_context,
-						$box_priority,
-						array( $fields )
-					);
-				});
-
-				// also set the metabox's class for formIO input styling
-				add_filter("postbox_classes_{$post_type_name}_{$box_id}", function($metaboxClasses) {
-					$metaboxClasses[] = 'formio';
-					return $metaboxClasses;
-				});
+					// draw the box's inputs
+					echo $that->get_metabox_form_output($metaBoxId, $meta, $post);
+				};
 			} else if ($this->post_type_name != 'attachment') {
 
 				// --- USER PROFILE EDITOR ---
@@ -351,13 +335,11 @@ class Custom_Post_Type
 
 					echo '</div>';
 				};
-				add_action('show_user_profile', $metaboxDrawCb);
-				add_action('edit_user_profile', $metaboxDrawCb);
 			} else {
 
 				// --- ATTACHMENT EDITOR ---
 
-				add_filter('attachment_fields_to_edit', function($formFields, $post) use ($box_id, $box_title, $that) {
+				$metaboxDrawCb = function($formFields, $post) use ($box_id, $box_title, $that) {
 					// Write a nonce field for some validation
 					wp_nonce_field(plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME);
 
@@ -366,8 +348,6 @@ class Custom_Post_Type
 
 					// build a string for our custom fields HTML
 					$formStr = '<div class="formio ' . $box_id . '">';
-
-					$formStr .= $that->__getCategoryInputsForAttachment($post);
 
 					$formStr .= '<h3>' . $box_title . '</h3>';
 					$formStr .= $that->get_metabox_form_output($box_id, $meta, $post);
@@ -382,8 +362,10 @@ class Custom_Post_Type
 					$formFields['_final'] = $formStr;
 
 					return $formFields;
-				}, 10, 2);
+				};
 			}
+
+			$this->raw_add_meta_box($box_id, $box_title, $post_type_name, $metaboxDrawCb, $box_context, $box_priority, $fields, $cbArgs);
 
 			// also register a callback to show any custom metabox submission errors present
 			if (isset($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE][$box_id])) {
@@ -395,6 +377,69 @@ class Custom_Post_Type
 					echo '<div class="error"><p>' . $boxErrorStr . '</p></div>';
 				});
 			}
+		}
+	}
+
+	public function raw_add_meta_box($box_id, $box_title, $post_type_name, $box_cb, $box_context, $box_priority, $fields, $cbArgs = null)
+	{
+		// output the metabox for our post type on the admin screen
+		if ($this->post_type_name != 'user' && $this->post_type_name != 'attachment') {
+
+			// --- STANDARD POST TYPE SCREEN ---
+
+			add_action('admin_init', function() use( $box_id, $box_title, $post_type_name, $box_context, $box_priority, $fields, $box_cb )
+			{
+				add_meta_box(
+					$box_id,
+					$box_title,
+					$box_cb,
+					$post_type_name,
+					$box_context,
+					$box_priority,
+					array( $fields )
+				);
+			});
+
+			// also set the metabox's class for formIO input styling
+			add_filter("postbox_classes_{$this->post_type_name}_{$box_id}", function($metaboxClasses) {
+				$metaboxClasses[] = 'formio';
+				return $metaboxClasses;
+			});
+		} else if ($this->post_type_name != 'attachment') {
+
+			// --- USER PROFILE EDITOR ---
+
+			$userUpdateCb = function($user) use ($box_cb, $cbArgs) {
+				if (isset($cbArgs)) {
+					call_user_func($box_cb, $user, array('args' => $cbArgs));
+				} else {
+					call_user_func($box_cb, $user);
+				}
+			};
+			add_action('show_user_profile', $userUpdateCb);
+			add_action('edit_user_profile', $userUpdateCb);
+		} else {
+
+			// --- ATTACHMENT EDITOR ---
+
+			add_filter('attachment_fields_to_edit', function($submittedData, $attach) use ($box_cb, $cbArgs) {
+				if (isset($cbArgs)) {
+					call_user_func($box_cb, $attach, array('args' => $cbArgs));
+				} else {
+					call_user_func($box_cb, $submittedData, $attach);
+				}
+			}, 10, 2);
+		}
+
+		// also register a callback to show any custom metabox submission errors present
+		if (isset($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE][$box_id])) {
+			add_action('admin_notices', function () use ($box_id, $box_title) {
+				$boxErrorStr = sprintf( __('%d error(s) saving \'%s\' data. Please <a href="#%s">review</a> this section.'),
+									count($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE][$box_id]), $box_title, $box_id
+								);
+
+				echo '<div class="error"><p>' . $boxErrorStr . '</p></div>';
+			});
 		}
 	}
 
@@ -949,54 +994,6 @@ class Custom_Post_Type
 		foreach ($options as $opt => $val) {
 			$field->setAttribute($opt, $val);
 		}
-	}
-
-	/**
-	 * Used by form input builders for attachment post types which have no taxonomy UIs
-	 * to retrieve extra fields for outputting on the attachment data page.
-	 */
-	public function __getCategoryInputsForAttachment($attachment, $force = false)
-	{
-		$categories = array();
-		$selectedCats = $this->get_post_terms($attachment->ID);
-
-		foreach ($selectedCats as $tax => $terms) {
-			if (!$terms) continue;
-			foreach ($terms as $i => $term) {
-				$selectedCats[$tax][$i] = $term->term_id;
-			}
-		}
-
-		// create a formIO instance for managing this taxonomy's metadata if not already present
-		if ($force || !isset($this->formHandlers['__taxonomy'])) {
-			$form = new FormIO('', 'POST');
-
-			foreach ($this->taxonomies as $category) {
-				$terms = $this->get_all_terms($category);
-				$selected = isset($selectedCats[$category]) ? $selectedCats[$category] : array();
-
-				// create a checkgroup for each taxonomy
-				$form->addField(self::TAX_POST_KEY . '[' . self::get_field_id_name($category) . ']', self::get_field_friendly_name($category), 'checkgroup');
-				$field = $form->getLastField();
-
-				foreach ($terms as $term) {
-					// create options for each term
-					$field->setOption($term->term_id, $term->name);
-
-					// and select if chosen
-					if (in_array($term->term_id, $selected)) {
-						$field->setValue($term->term_id);
-					}
-				}
-
-			}
-
-			$this->formHandlers['__taxonomy'] = $form;
-		} else {
-			$form = $this->formHandlers['__taxonomy'];
-		}
-
-		return $form->getFieldsHTML();
 	}
 
 	private function prehandlePostMeta($postId, $metaFields)

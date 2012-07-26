@@ -93,4 +93,28 @@ abstract class AdminUI
 			});
 		}
 	}
+
+	public static function addTaxonomyMetabox($postType, $taxonomy)
+	{
+		// allow passing a CPT object or post type name
+		if (!$postType instanceof Custom_Post_Type) {
+			$postType = Custom_Post_Type::get_post_type($postType);
+		}
+
+		// read taxonomy name for the metabox title
+		$taxonomyObj = get_taxonomy($taxonomy);
+		$label = $taxonomyObj->labels->name;
+
+		// ensure we have the callbacks loaded
+		require_once(ABSPATH . 'wp-admin/includes/meta-boxes.php');
+		// add the metabox
+		if ( !is_taxonomy_hierarchical($taxonomy) ) {
+			$postType->raw_add_meta_box('tagsdiv-' . $taxonomy, $label, $postType->post_type_name, 'post_tags_meta_box', 'side', 'core', array(), array( 'taxonomy' => $taxonomy ));
+		} else {
+			$postType->raw_add_meta_box($taxonomy . 'div', $label, $postType->post_type_name, 'post_categories_meta_box', 'side', 'core', array(), array( 'taxonomy' => $taxonomy ));
+		}
+
+		// ensure the post edit script is enqueued for taxonomy UI controls
+		wp_enqueue_script('post');
+	}
 }
