@@ -15,6 +15,10 @@ if(!class_exists('WP_List_Table')){
 
 abstract class AdminUI
 {
+	//--------------------------------------------------------------------------
+	// Page helpers
+	//--------------------------------------------------------------------------
+
 	/**
 	 * Add an admin post list page to the UI under the specified parent
 	 * @param [string] $parentMenu    	parent menu item url/ID
@@ -94,6 +98,15 @@ abstract class AdminUI
 		}
 	}
 
+	/**
+	 * Add an additional taxonomy input (either hierarchical or tag-based) to the
+	 * given post type's edit page.
+	 *
+	 * Mostly of use in adding taxonomies to wordpress Users & Attachments.
+	 *
+	 * @param string $postType post type to add the metabox to
+	 * @param string $taxonomy taxonomy to display the options for
+	 */
 	public static function addTaxonomyMetabox($postType, $taxonomy)
 	{
 		$taxonomyObj = get_taxonomy($taxonomy);
@@ -126,5 +139,40 @@ abstract class AdminUI
 
 		// ensure the post edit script is enqueued for taxonomy UI controls
 		wp_enqueue_script('post');
+	}
+
+	//--------------------------------------------------------------------------
+	// Screen helpers
+	//--------------------------------------------------------------------------
+
+	/**
+	 * Renders out a taxonomy input.
+	 */
+	public static function getTaxonomyInput($taxonomyName, $postObj, $hierarchical = false)
+	{
+		// ensure we have the callbacks loaded
+		require_once(ABSPATH . 'wp-admin/includes/meta-boxes.php');
+		// ensure the post edit script is enqueued for taxonomy UI controls
+		wp_enqueue_script('post');
+
+		$taxonomyObj = get_taxonomy($taxonomyName);
+
+		// allow passing a CPT object or post type name
+		if (!$postType instanceof Custom_Post_Type) {
+			$postType = Custom_Post_Type::get_post_type($postType);
+		}
+
+		// read taxonomy name for the metabox title
+		$label = $taxonomyObj->labels->name;
+
+		// output the metabox
+		$callback = $hierarchical ? 'post_categories_meta_box' : 'post_tags_meta_box';
+
+		ob_start();
+		call_user_func($callback, $postObj, array(
+			'args' => array('taxonomy' => $taxonomyName),
+			'title' => $label,
+		));
+		return ob_get_clean();
 	}
 }
