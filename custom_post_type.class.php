@@ -372,7 +372,7 @@ class Custom_Post_Type
 						unset($formFields[$category]);
 					}
 					// send back as the form footer - hopefully this is not widely used by other plugins
-					$formFields['_final'] = $formStr;
+					$formFields['_final'] = isset($formFields['_final']) ? ($formFields['_final'] . $formStr) : $formStr;
 
 					return $formFields;
 				};
@@ -437,9 +437,9 @@ class Custom_Post_Type
 
 			add_filter('attachment_fields_to_edit', function($submittedData, $attach) use ($box_cb, $cbArgs) {
 				if (isset($cbArgs)) {
-					call_user_func($box_cb, $attach, array('args' => $cbArgs));
+					return call_user_func($box_cb, $attach, array('args' => $cbArgs));
 				} else {
-					call_user_func($box_cb, $submittedData, $attach);
+					return call_user_func($box_cb, $submittedData, $attach);
 				}
 			}, 10, 2);
 		}
@@ -1005,6 +1005,14 @@ class Custom_Post_Type
 			unset($options['post_type']);
 			unset($options['query_args']);
 			unset($options['single']);
+		}
+
+		// pass the post data to taxonomy input types
+		else if ($type == 'taxonomy') {
+			if (isset($options['taxonomy'])) {
+				$field->setTaxonomy($options['taxonomy']);
+			}
+			$field->setActivePost($post);
 		}
 
 		// add all remaining options as field display attributes

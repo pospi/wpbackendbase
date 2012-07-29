@@ -93,6 +93,10 @@ li.token-input-token.img .token-input-delete-token {
 	width: auto;
 }
 
+.formio div.blck.tax_input .rows label {
+	display: inline;
+	width: auto;
+}
 
 /*-----------------------------------------------------------------------*/
 /* extra admin notification icon classes */
