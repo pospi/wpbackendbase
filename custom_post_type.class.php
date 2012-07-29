@@ -13,7 +13,10 @@ class Custom_Post_Type
 	const ERROR_SESSION_STORAGE = 'custom_post_errors';
 	const NONCE_FIELD_NAME = 'custom_post_type';
 	const META_POST_KEY = 'custom_meta';
-	const TAX_POST_KEY = 'tax_input';	// used by media post types to reimplement taxonomies
+
+	const TAX_POST_KEY = 'tax_input';			// used by media post types to reimplement taxonomies
+	const TAX_DEFAULT_KEY = 'post_category';	// post variable for 'category' taxonomy is different
+
 	const IS_USER_SAVE_FLAG = 'custom_post_type_is_user';
 
 	public $post_type_name;
@@ -528,13 +531,22 @@ class Custom_Post_Type
 			}
 
 			// special case for handling taxonomy updates for users & attachments - this is not builtin
-			if (isset($_POST[Custom_Post_Type::TAX_POST_KEY]) && ($thisPt == 'user' || $thisPt == 'attachment') && $thisPt == $post_type_name) {
+			if ((isset($_POST[Custom_Post_Type::TAX_POST_KEY]) || isset($_POST[Custom_Post_Type::TAX_DEFAULT_KEY])) && ($thisPt == 'user' || $thisPt == 'attachment') && $thisPt == $post_type_name) {
 				$taxonomies = array();
-				foreach ($_POST[Custom_Post_Type::TAX_POST_KEY] as $tax => $termIds) {
-					if (is_array($termIds)) {
-						$termIds = array_map('intval', $termIds);
+				if (isset($_POST[Custom_Post_Type::TAX_POST_KEY])) {
+					foreach ($_POST[Custom_Post_Type::TAX_POST_KEY] as $tax => $termIds) {
+						if (is_array($termIds)) {
+							$termIds = array_map('intval', $termIds);
+						}
+						$taxonomies[$tax] = $termIds;
 					}
-					$taxonomies[$tax] = $termIds;
+				}
+				if (isset($_POST[Custom_Post_Type::TAX_DEFAULT_KEY])) {
+					$categories = array();
+					foreach ($_POST[Custom_Post_Type::TAX_DEFAULT_KEY] as $catId) {
+						$categories[] = intval($catId);
+					}
+					$taxonomies['category'] = $categories;
 				}
 				$that->update_post_terms($postId, $taxonomies);
 			}
