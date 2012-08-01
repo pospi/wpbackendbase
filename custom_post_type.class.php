@@ -467,7 +467,6 @@ class Custom_Post_Type
 	 * @param callable $displayHandler 	callback to handle display of the column's cells.
 	 *                               Accepts column ID, post ID and Custom_Post_Type instance as parameters.
 	 * @param callable $orderHandler	callback to handle ordering of the column. When null, the column is not orderable.
-	 *                               	When true, the column ID is passed as the 'orderby' parameter to WP_Query - this is the builtin behaviour for taxonomy compatibility.
 	 *                               Accepts a reference to the array of arguments to WP_Query for premodification.
 	 * @param int	 $displayActionPriority	priority parameter for manage_posts_custom_column hook used in column cell output.
 	 */
@@ -616,14 +615,16 @@ class Custom_Post_Type
 
 		add_filter($sortHook, function($columns) use ($that) {
 			foreach ($that->list_columns as $colId => $args) {
-				$columns[$colId] = $colId;
+				if ($args['order']) {
+					$columns[$colId] = $colId;
+				}
 			}
 			return $columns;
 		});
 
 		add_filter('request', function($vars) use ($that) {
 			// check that we're dealing with an ordering that our post type supports
-			if ($vars['post_type'] != $that->post_type_name || !isset($vars['orderby']) || !isset($that->list_columns[$vars['orderby']])) {
+			if ($vars['post_type'] != $that->post_type_name || !isset($vars['orderby']) || !isset($that->list_columns[$vars['orderby']]['order'])) {
 				return $vars;
 			}
 
