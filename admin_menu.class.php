@@ -323,6 +323,11 @@ abstract class AdminMenu
 
 	public static function getListUrl($postType)
 	{
+		if ($postType == 'attachment') {
+			return 'upload.php?';
+		} else if ($postType == 'user') {
+			return 'users.php?';
+		}
 		return 'edit.php?post_type=' . $postType;
 	}
 
