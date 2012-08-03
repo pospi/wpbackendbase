@@ -101,7 +101,7 @@ if (!defined('SITE_GIT_SUBMODULE_HISTORY') || SITE_GIT_SUBMODULE_HISTORY) {
 		}
 
 		if ($time < $earliestRepoDate) {
-			break;
+			continue;
 		}
 
 		$commits[$time] = $commit;
