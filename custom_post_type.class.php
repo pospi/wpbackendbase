@@ -465,17 +465,20 @@ class Custom_Post_Type
 	 * @param string $colId          	ID of the column in the post list. Must be globally unique.
 	 * @param string $colLabel       	label of the column
 	 * @param callable $displayHandler 	callback to handle display of the column's cells.
-	 *                               Accepts column ID, post ID and Custom_Post_Type instance as parameters.
+	 *                                  Accepts column ID, post ID and Custom_Post_Type instance as parameters.
 	 * @param callable $orderHandler	callback to handle ordering of the column. When null, the column is not orderable.
-	 *                               Accepts a reference to the array of arguments to WP_Query for premodification.
+	 *                               	Accepts a reference to the array of arguments to WP_Query for premodification.
+	 * @param array  $filterHandlers	Array mapping GET parameter names to 'request' action hooks. These callbacks work in the same way as $orderHandler,
+	 *                                 	but are executed based on the presence of the GET parameter indicated.
 	 * @param int	 $displayActionPriority	priority parameter for manage_posts_custom_column hook used in column cell output.
 	 */
-	public function add_list_column($colId, $colLabel, $displayHandler, $orderHandler = null, $displayActionPriority = 10)
+	public function add_list_column($colId, $colLabel, $displayHandler, $orderHandler = null, $filterHandlers = null, $displayActionPriority = 10)
 	{
 		$this->list_columns[$colId] = array(
 			'label' => $colLabel,
 			'display' => $displayHandler,
 			'order' => $orderHandler,
+			'filters' => $filterHandlers,
 		);
 		// set the column start offset for all our column output
 		$this->displayActionPriority = $displayActionPriority;
@@ -623,11 +626,27 @@ class Custom_Post_Type
 		});
 
 		add_filter('request', function($vars) use ($that) {
+			// FILTERING ACTIONS
+
+			// process any filters if their GET parameter is present
+			foreach ($that->list_columns as $colId => $args) {
+				if (isset($args['filters'])) {
+					foreach ($args['filters'] as $param => $handler) {
+						if (isset($_GET[$param])) {
+							$vars = call_user_func($handler, $vars);
+						}
+					}
+				}
+			}
+
+			// ORDERING ACTIONS
+
 			// check that we're dealing with an ordering that our post type supports
 			if ($vars['post_type'] != $that->post_type_name || !isset($vars['orderby']) || !isset($that->list_columns[$vars['orderby']]['order'])) {
 				return $vars;
 			}
 
+			// return the query with order parameters added
 			return call_user_func($that->list_columns[$vars['orderby']]['order'], $vars);
 		});
 	}
