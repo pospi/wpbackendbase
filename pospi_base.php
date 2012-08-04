@@ -1,13 +1,24 @@
 <?php
 /*
-Plugin Name: Pospi wordpress admin UI base plugin
-Plugin URI: http://pospi.spadgos.com
-Description: Helpers for managing custom post types & user input of post data
+Plugin Name: Pospi's Wordpress backend base plugin
+Plugin URI: http://pospi.spadgos.com/libs/wpbackendbase
+Description: Helpers for managing custom post & object data, user input and the admin UI.
 Version: 1.0
 Author: pospi
 Author URI: http://pospi.spadgos.com
 License: MIT
 */
+
+// other plugin menu items
+add_filter('plugin_row_meta', function($links, $file) {
+	$base = basename(__FILE__);
+
+	if (basename($file) == $base) {
+		$links[] = '<a href="https://github.com/pospi/wpbackendbase">Github</a>';
+	}
+
+	return $links;
+}, 10, 2);
 
 define('POSPI_PLUGIN_BASE', dirname(__FILE__));
 
