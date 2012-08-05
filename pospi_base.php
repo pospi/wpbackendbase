@@ -43,15 +43,6 @@ require_once(POSPI_PLUGIN_BASE . "/admin_ui.class.php");	// interface builders &
 
 if (is_admin()) {
 	add_action(FormIOField_Posttypes::AJAX_HOOK_NAME, 'FormIOField_Posttypes::__responseHandler');
-
-	// option to make your site's commit history visible to clients
-	define('SITE_GIT_REPO_DIR', ABSPATH . 'wp-content/');
-	// define('SITE_GIT_REPO_DIR', false);
-	define('SITE_GIT_SUBMODULE_HISTORY', true);
-
-	if (SITE_GIT_REPO_DIR) {
-		AdminMenu::addPluginsSubmenu('Site Changelog', dirname(__FILE__) . '/commit_log.php');
-	}
 }
 
 // Custom Javascript
