@@ -191,13 +191,28 @@ abstract class AdminMenu
 		if (!isset(self::$menusToOverride[Custom_Post_Type::get_field_id_name($menuSlug)])) {
 			self::$menusToOverride[Custom_Post_Type::get_field_id_name($menuSlug)] = array();
 		}
+
+		// accept local files as URLs, they will be included as the page
+		if (file_exists($urlOrCb)) {
+			$url = 'admin.php?page=' . Custom_Post_Type::get_field_id_name($existingTitle);
+			$callback = function() use ($urlOrCb) {
+				require_once($urlOrCb);
+			};
+		} else if (is_callable($urlOrCb)) {
+			$url = 'admin.php?page=' . $urlOrCb;
+			$callback = $urlOrCb;
+		} else {
+			$url = $urlOrCb;
+			$callback = null;
+		}
+
 		self::$menusToOverride[Custom_Post_Type::get_field_id_name($menuSlug)][$existingTitle] = array(
 			'title' => $newTitle,
 			'menu_title' => isset($newMenuTitle) ? $newMenuTitle : $newTitle,
 			'capability' => $capability,
 
-			'url' => is_string($urlOrCb) ? $urlOrCb : null,
-			'function' => is_string($urlOrCb) ? null : $urlOrCb,
+			'url' => $url,
+			'function' => $callback,
 		);
 	}
 
