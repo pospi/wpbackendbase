@@ -146,8 +146,8 @@ abstract class AdminMenu
 	private static function handleMenuCallback($label, $urlOrCb)
 	{
 		if (is_string($urlOrCb)) {
-			if ($urlOrCb[0] == '/') {
-				// absolute file URI - include it
+			if (file_exists($urlOrCb)) {
+				// local file path - include it
 				return array(Custom_Post_Type::get_field_id_name($label), function() use ($urlOrCb) {
 					require_once($urlOrCb);
 				});
