@@ -146,16 +146,17 @@ abstract class AdminMenu
 	private static function handleMenuCallback($label, $urlOrCb)
 	{
 		if (is_string($urlOrCb)) {
-			if (file_exists($urlOrCb)) {
-				// local file path - include it
+			if (is_callable($urlOrCb)) {
+				// string-based function callback
+				return array(Custom_Post_Type::get_field_id_name($label), $urlOrCb);
+			} else if ($urlOrCb{0} === '/') {
+				// absolute local file path - include it
 				return array(Custom_Post_Type::get_field_id_name($label), function() use ($urlOrCb) {
 					require_once($urlOrCb);
 				});
-			} else if (preg_match('/^https?:/', $urlOrCb) || preg_match('/\.php(\?|$)/', $urlOrCb)) {
-				// absolute URL or internal PHP file url. don't think these will actually work, but they shouldn't be called via require() in any case!
-				return array($urlOrCb, null);
 			} else {
-				return array(Custom_Post_Type::get_field_id_name($label), $urlOrCb);
+				// some builtin filename-based menu slug
+				return array($urlOrCb, null);
 			}
 		} else {
 			return array(Custom_Post_Type::get_field_id_name($label), $urlOrCb);
@@ -192,19 +193,7 @@ abstract class AdminMenu
 			self::$menusToOverride[Custom_Post_Type::get_field_id_name($menuSlug)] = array();
 		}
 
-		// accept local files as URLs, they will be included as the page
-		if (file_exists($urlOrCb)) {
-			$url = 'admin.php?page=' . Custom_Post_Type::get_field_id_name($existingTitle);
-			$callback = function() use ($urlOrCb) {
-				require_once($urlOrCb);
-			};
-		} else if (is_callable($urlOrCb)) {
-			$url = 'admin.php?page=' . $urlOrCb;
-			$callback = $urlOrCb;
-		} else {
-			$url = $urlOrCb;
-			$callback = null;
-		}
+		list($url, $callback) = self::handleMenuCallback($existingTitle, $urlOrCb);
 
 		self::$menusToOverride[Custom_Post_Type::get_field_id_name($menuSlug)][$existingTitle] = array(
 			'title' => $newTitle,
