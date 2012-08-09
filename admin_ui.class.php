@@ -139,6 +139,9 @@ abstract class AdminUI
 		if ($resetScreen) {
 			set_current_screen($resetScreen->id);
 		}
+
+		return $wp_list_table;
+
 	}
 
 	//--------------------------------------------------------------------------
