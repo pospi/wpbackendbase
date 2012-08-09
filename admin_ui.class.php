@@ -32,14 +32,20 @@ abstract class AdminUI
 	 */
 	public static function addFilteredListPage($parentMenu, $menuLabel, $postTypeName, $queryModifyCb, $pageTitle = null, $capability = 'manage_options', WP_List_Table $listTable = null)
 	{
+		$resetScreen = false;
 		if (!isset($listTable)) {
-			$listTable = self::getPostTypeListTable($postTypeName);
+			list($listTable, $resetScreen) = self::getPostTypeListTable($postTypeName);
 		} else {
 			$listTable->prepare_items();
 		}
 
-		AdminMenu::addSubmenu($parentMenu, $menuLabel, function() use ($pageTitle, $menuLabel, $listTable) {
+		AdminMenu::addSubmenu($parentMenu, $menuLabel, function() use ($pageTitle, $menuLabel, $listTable, $resetScreen) {
 			echo AdminUI::renderListTablePage($listTable, isset($pageTitle) ? $pageTitle : $menuLabel);
+
+			// restore the current screen as it was after rendering
+			if ($resetScreen) {
+				set_current_screen($resetScreen->id);
+			}
 		});
 
 		// if we're viewing our page, add the query filter to the request
@@ -108,7 +114,10 @@ abstract class AdminUI
 	 * can be reset after processing.
 	 *
 	 * @param  string $postTypeName post type (or object type if 'user', 'attachment') to get the table object for
-	 * @return the list table used to draw those posts
+	 * @return array of the list table used to draw those posts at index 0, and the
+	 *               previous screen object at index 1. Wordpress' mess of globals requires that you have the current
+	 *               screen set whilst displaying your table, so it is your responsibility to set_current_screen($resetScreen->id)
+	 *               once you've called ->display() on your table object.
 	 */
 	public function getPostTypeListTable($postTypeName)
 	{
@@ -135,13 +144,7 @@ abstract class AdminUI
 		}
 		$wp_list_table->prepare_items();
 
-		// restore the current screen as it was
-		if ($resetScreen) {
-			set_current_screen($resetScreen->id);
-		}
-
-		return $wp_list_table;
-
+		return array($wp_list_table, $resetScreen);
 	}
 
 	//--------------------------------------------------------------------------
