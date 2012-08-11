@@ -121,6 +121,11 @@ abstract class AdminUI
 	 */
 	public function getPostTypeListTable($postTypeName)
 	{
+		if (!function_exists('_get_list_table')) {
+			// not in admin, can't do it.
+			return null;
+		}
+
 		// set the current screen so we get the correct hooks executed for the table
 		$resetScreen = get_current_screen();
 
