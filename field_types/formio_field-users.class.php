@@ -4,6 +4,7 @@
  *
  * Arguments to setQueryArgs are the same as to the WP_User_Query class
  *
+ * @package wpBackendBase
  * @author Sam Pospischil <pospi@spadgos.com>
  */
 

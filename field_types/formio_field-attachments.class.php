@@ -5,6 +5,7 @@
  * Adds thumbnail drawing for image attachments. post_type for this class
  * configures the post_mime_type internally - the post type is always 'attachment'.
  *
+ * @package wpBackendBase
  * @author Sam Pospischil <pospi@spadgos.com>
  */
 

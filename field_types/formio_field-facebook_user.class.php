@@ -1,4 +1,12 @@
 <?php
+/**
+ * Facebook user ID input
+ *
+ * Just a text input with some javascript wrapped around it to make the intent clearer
+ *
+ * @package wpBackendBase
+ * @author Sam Pospischil <pospi@spadgos.com>
+ */
 
 class FormIOField_Facebook_user extends FormIOField_Text
 {

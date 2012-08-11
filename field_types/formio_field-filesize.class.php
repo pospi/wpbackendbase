@@ -1,6 +1,9 @@
 <?php
 /**
  * Simple field class for displaying filesizes
+ *
+ * @package wpBackendBase
+ * @author Sam Pospischil <pospi@spadgos.com>
  */
 
 FormIO::preloadFieldClass('readonly');

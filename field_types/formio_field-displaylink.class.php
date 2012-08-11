@@ -1,6 +1,9 @@
 <?php
 /**
  * Simple field class for showing links in admin forms
+ *
+ * @package wpBackendBase
+ * @author Sam Pospischil <pospi@spadgos.com>
  */
 
 class FormIOField_Displaylink extends FormIOField_Raw

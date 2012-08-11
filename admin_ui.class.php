@@ -5,6 +5,7 @@
  * Contains functionality for outputting your own custom pages:
  * 	- filtered admin post lists
  *
+ * @package wpBackendBase
  * @author Sam Pospischil <pospi@spadgos.com>
  * @since 19/7/12
  */

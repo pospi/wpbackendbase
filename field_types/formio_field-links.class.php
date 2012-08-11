@@ -5,6 +5,7 @@
  * Arguments to setQueryArgs are the same as to get_bookmarks():
  * 	http://codex.wordpress.org/Function_Reference/get_bookmarks
  *
+ * @package wpBackendBase
  * @author Sam Pospischil <pospi@spadgos.com>
  */
 

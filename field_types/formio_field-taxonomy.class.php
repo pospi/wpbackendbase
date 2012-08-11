@@ -1,4 +1,10 @@
 <?php
+/**
+ * Field class for displaying one of the Wordpress taxonomy inputs
+ *
+ * @package wpBackendBase
+ * @author Sam Pospischil <pospi@spadgos.com>
+ */
 
 class FormIOField_Taxonomy extends FormIOField_Text
 {

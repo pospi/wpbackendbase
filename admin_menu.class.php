@@ -4,6 +4,7 @@
  *
  * Wrapper functionality to more easily manage the admin menu UI hierarchy
  *
+ * @package wpBackendBase
  * @author Sam Pospischil <pospi@spadgos.com>
  * @since 1/7/12
  */

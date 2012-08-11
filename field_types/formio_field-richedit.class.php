@@ -1,6 +1,9 @@
 <?php
 /**
  * Input class for displaying a wordpress TinyMCE editor
+ *
+ * @package wpBackendBase
+ * @author Sam Pospischil <pospi@spadgos.com>
  */
 
 class FormIOField_Richedit extends FormIOField_Text

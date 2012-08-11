@@ -6,6 +6,8 @@
  *
  * Originally from http://wp.tutsplus.com/tutorials/creative-coding/custom-post-type-helper-class/
  * @author Gijs Jorissen
+ *
+ * @package wpBackendBase
  * @author Sam Pospischil <pospi@spadgos.com>
  */
 class Custom_Post_Type

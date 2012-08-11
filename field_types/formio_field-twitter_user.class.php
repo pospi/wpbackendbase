@@ -1,4 +1,10 @@
 <?php
+/**
+ * Simple textual input with some JS wrapped around it to make its intention clearer
+ *
+ * @package wpBackendBase
+ * @author Sam Pospischil <pospi@spadgos.com>
+ */
 
 class FormIOField_Twitter_user extends FormIOField_Text
 {

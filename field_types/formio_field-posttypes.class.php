@@ -8,6 +8,7 @@
  *
  * An array of post IDs is returned as the value of this field.
  *
+ * @package wpBackendBase
  * @author Sam Pospischil <pospi@spadgos.com>
  */
 
