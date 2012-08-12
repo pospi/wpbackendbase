@@ -3,4 +3,4 @@
 	url = git@github.com:pospi/formio.git
 [submodule "jcparallax"]
 	path = jcparallax
-	url = /home/pospi/git/jc-parallax.git
+	url = git@github.com:pospi/jcparallax.git
