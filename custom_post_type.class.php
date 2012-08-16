@@ -310,7 +310,7 @@ class Custom_Post_Type
 					$meta = $that->get_post_meta( $post->ID );
 
 					// Write a nonce field for some validation
-					wp_nonce_field( plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME );
+					Custom_Post_Type::outputSaveNonce();
 					// add a hidden input to indicate a user is being update if necessary - this is not determinable easily otherwise
 					if ($that->post_type_name == 'user') {
 						echo "<input type=\"hidden\" name=\"" . Custom_Post_Type::IS_USER_SAVE_FLAG . "\" value=\"1\" />";
@@ -325,7 +325,7 @@ class Custom_Post_Type
 
 				$metaboxDrawCb = function($user) use ($box_id, $box_title, $that) {
 					// Write a nonce field for some validation
-					wp_nonce_field(plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME);
+					Custom_Post_Type::outputSaveNonce();
 					// add a hidden input to indicate a user is being update if necessary - this is not determinable easily otherwise
 					if ($that->post_type_name == 'user') {
 						echo "<input type=\"hidden\" name=\"" . Custom_Post_Type::IS_USER_SAVE_FLAG . "\" value=\"1\" />";
@@ -355,7 +355,7 @@ class Custom_Post_Type
 
 				$metaboxDrawCb = function($formFields, $post) use ($box_id, $box_title, $that) {
 					// Write a nonce field for some validation
-					wp_nonce_field(plugin_basename( __FILE__ ), Custom_Post_Type::NONCE_FIELD_NAME);
+					Custom_Post_Type::outputSaveNonce();
 					// add a hidden input to indicate a user is being update if necessary - this is not determinable easily otherwise
 					if ($that->post_type_name == 'user') {
 						echo "<input type=\"hidden\" name=\"" . Custom_Post_Type::IS_USER_SAVE_FLAG . "\" value=\"1\" />";
@@ -1064,6 +1064,19 @@ class Custom_Post_Type
 			$metaFields = call_user_func($cb, $postId, $metaFields, $this);
 		}
 		return $metaFields;
+	}
+
+	/**
+	 * Writes out a save nonce which will simultaneously activate the custom post type
+	 * code and validate the security of its submission.
+	 */
+	public function outputSaveNonce()
+	{
+		static $printNonce = true;
+		if ($printNonce) {
+			$printNonce = false;
+			wp_nonce_field(plugin_basename( __FILE__ ), self::NONCE_FIELD_NAME);
+		}
 	}
 
 	//---------------------------------------------------------------------------------
