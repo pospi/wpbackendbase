@@ -891,11 +891,35 @@ class Custom_Post_Type
 	{
 		if (!isset($meta)) $meta = array();
 
-		foreach ($this->meta_fields as $title => $meta_fields) {
+		$this->formHandlers = self::generateMetaboxForms($this->meta_fields, $meta, $force, $this->formHandlers);
+
+		// process superclass as well
+		if ($this->post_type_superclass) {
+			$superType = self::get_post_type($this->post_type_superclass);
+			$superType->init_form_handlers($meta, $post, $force);
+		}
+	}
+
+	/**
+	 * Converts an array of metabox & field definitions into FormIO instances for handling
+	 * the submission and rendering of those metaboxes.
+	 * @param  Array   $metabox_defs    metabox definition array. This matches the internal format of $this->meta_fields.
+	 * @param  Array   $meta            existing metadata
+	 * @param  boolean $force           if true, regenerate form handlers if already present
+	 * @param  Array   $boxFormHandlers existing form handlers for detection of existing handlers when $force = false
+	 * @return array of FormIO objects corresponding to each metabox
+	 */
+	public static function generateMetaboxForms(Array $metabox_defs, Array $meta, $force = false, Array $boxFormHandlers = null)
+	{
+		if (!isset($boxFormHandlers)) {
+			$boxFormHandlers = array();
+		}
+
+		foreach ($metabox_defs as $title => $meta_fields) {
 			$metaBoxId = self::get_field_id_name($title);			// metabox ID used for form ID
 
 			// create a formIO instance for managing this box's metadata if not already present
-			if ($force || !isset($this->formHandlers[$metaBoxId])) {
+			if ($force || !isset($boxFormHandlers[$metaBoxId])) {
 				$form = new FormIO('', 'POST');
 
 				// add all box's fields to the form
@@ -914,7 +938,7 @@ class Custom_Post_Type
 					$form->addField($fieldName, $label, $type);
 					$field = $form->getLastField();
 
-					$this->handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName);
+					self::handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName);
 
 					// set passed or default value (:WARNING: must be done after calling setQueryArgs() due to post title lookups for prefilling the list's values)
 					if ($field instanceof FormIOField_Checkbox) {
@@ -926,15 +950,11 @@ class Custom_Post_Type
 					}
 				}
 
-				$this->formHandlers[$metaBoxId] = $form;
+				$boxFormHandlers[$metaBoxId] = $form;
 			}
 		}
 
-		// process superclass as well
-		if ($this->post_type_superclass) {
-			$superType = self::get_post_type($this->post_type_superclass);
-			$superType->init_form_handlers($meta, $post, $force);
-		}
+		return $boxFormHandlers;
 	}
 
 	/**
@@ -945,7 +965,7 @@ class Custom_Post_Type
 	 * @param  bool			$postId	the post the form is being loaded for
 	 * @param  array		$meta  loaded metadata array from the post we're displaying
 	 */
-	protected function handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName)
+	public static function handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName)
 	{
 		// set any field validators that need setting
 		if (isset($options['validators'])) {
@@ -1002,7 +1022,7 @@ class Custom_Post_Type
 				}
 				$subField = $field->createSubField($f, self::get_field_id_name($name), $name);
 
-				$this->handleMetaboxConfig($f, $subOpts, $subField, $post, $meta, $metaBoxId, $fieldName);
+				self::handleMetaboxConfig($f, $subOpts, $subField, $post, $meta, $metaBoxId, $fieldName);
 			}
 			unset($options['fields']);
 		}
