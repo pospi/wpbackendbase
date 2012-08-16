@@ -30,8 +30,12 @@ abstract class AdminUI
 	 * @param [string] $pageTitle     	title of the page as displayed in the header
 	 * @param [string] $capability		permission required to access the page
 	 * @param [WP_List_Table] $listTable  if specified, use this custom WP_List_Table instance to render the page instead of one of the builtin one for the post type.
+	 * @param [array]  $quickEditFields An array of form input definitions to output for each column's quick edit inputs.
+	 *                                  Top-level keys in this array correspond to column IDs from the list. Subarrays are keyed by metabox name and structured
+	 *                                  in the same fashion as with Customn_Post_Type::add_meta_box() - note that the combination of metabox name & field name
+	 *                                  is combined with an underscore to generate the final input names - so you should mirror your metabox definitions passed to add_meta_box().
 	 */
-	public static function addFilteredListPage($parentMenu, $menuLabel, $postTypeName, $queryModifyCb, $pageTitle = null, $capability = 'manage_options', WP_List_Table $listTable = null)
+	public static function addFilteredListPage($parentMenu, $menuLabel, $postTypeName, $queryModifyCb, $pageTitle = null, $capability = 'manage_options', WP_List_Table $listTable = null, Array $quickEditFields = null)
 	{
 		$resetScreen = false;
 		if (!isset($listTable)) {
@@ -49,14 +53,39 @@ abstract class AdminUI
 			}
 		});
 
-		// if we're viewing our page, add the query filter to the request
+		// if we're viewing our page, hookup other view management callbacks
 		if (isset($_GET['page']) && $_GET['page'] == Custom_Post_Type::get_field_id_name($menuLabel)) {
+			// add the request filter for querying the table's contents
 			add_filter('request', function($vars) use ($postTypeName, $queryModifyCb) {
 				if ($vars['post_type'] == $postTypeName) {
 					return call_user_func($queryModifyCb, $vars, $postTypeName);
 				}
 				return $vars;
 			});
+
+			// add the quickedit filter hook if needed
+			if (isset($quickEditFields)) {
+				add_action('quick_edit_custom_box', function($columnName, $postType) use ($quickEditFields) {
+					if (isset($quickEditFields[$columnName])) {
+						// this column is set - output a nonce if needed
+						Custom_Post_Type::outputSaveNonce();
+?>
+<fieldset class="inline-edit-col-left formio">
+	<div class="inline-edit-col inline-edit-<?php echo $column_name ?>">
+<?php
+						// generate form handlers for all quick edit inputs and echo them out
+						$forms = Custom_Post_Type::generateMetaboxForms($quickEditFields[$columnName], array());
+
+						foreach ($forms as $metaboxId => $form) {
+							echo $form->getFieldsHTML();
+						}
+?>
+	</div>
+</fieldset>
+<?php
+					}
+				}, 10, 2);
+			}
 		}
 	}
 
