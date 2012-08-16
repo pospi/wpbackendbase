@@ -356,4 +356,24 @@ abstract class AdminMenu
 	{
 		return 'edit-tags.php?taxonomy=' . $taxonomy . '&post_type=' . $postType;
 	}
+
+	public static function rewriteURL(Array $newQueryParams, $existingQuery = null, $siteRelativePath = null)
+	{
+		global $wp;
+
+		if (!isset($existingQuery)) {
+			$existingQuery = $wp->query_string;
+		} else {
+			$existingQuery = ltrim($existingQuery, '?');
+		}
+
+		if (!isset($siteRelativePath)) {
+			$siteRelativePath = $w->request;
+		}
+
+		if ($siteRelativePath) {
+			return home_url($siteRelativePath) . add_query_arg($newQueryParams, '?' . $existingQuery);
+		}
+		return add_query_arg($newQueryParams, '?' . $existingQuery);
+	}
 }

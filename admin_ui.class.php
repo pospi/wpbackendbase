@@ -30,12 +30,13 @@ abstract class AdminUI
 	 * @param [string] $pageTitle     	title of the page as displayed in the header
 	 * @param [string] $capability		permission required to access the page
 	 * @param [WP_List_Table] $listTable  if specified, use this custom WP_List_Table instance to render the page instead of one of the builtin one for the post type.
+	 * @param [array]  $replacementActions An array mapping the row actions to HTML (usually an anchor tag) for any overridden or new actions. To remove existing actions, pass NULL as the value for that action.
 	 * @param [array]  $quickEditFields An array of form input definitions to output for each column's quick edit inputs.
 	 *                                  Top-level keys in this array correspond to column IDs from the list. Subarrays are keyed by metabox name and structured
 	 *                                  in the same fashion as with Customn_Post_Type::add_meta_box() - note that the combination of metabox name & field name
 	 *                                  is combined with an underscore to generate the final input names - so you should mirror your metabox definitions passed to add_meta_box().
 	 */
-	public static function addFilteredListPage($parentMenu, $menuLabel, $postTypeName, $queryModifyCb, $pageTitle = null, $capability = 'manage_options', WP_List_Table $listTable = null, Array $quickEditFields = null)
+	public static function addFilteredListPage($parentMenu, $menuLabel, $postTypeName, $queryModifyCb, $pageTitle = null, $capability = 'manage_options', WP_List_Table $listTable = null, Array $replacementActions = null, Array $quickEditFields = null)
 	{
 		$resetScreen = false;
 		if (!isset($listTable)) {
@@ -62,6 +63,20 @@ abstract class AdminUI
 				}
 				return $vars;
 			});
+
+			// replace out any row actions defined
+			if (isset($replacementActions)) {
+				add_filter('post_row_actions', function($actions, $post) use ($replacementActions) {
+					foreach ($replacementActions as $action => $output) {
+						if (!isset($output)) {
+							unset($actions[$action]);
+							continue;
+						}
+						$actions[$action] = $output;
+					}
+					return $actions;
+				}, 10, 2);
+			}
 
 			// add the quickedit filter hook if needed
 			if (isset($quickEditFields)) {
