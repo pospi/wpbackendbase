@@ -82,22 +82,7 @@ abstract class AdminUI
 			if (isset($quickEditFields)) {
 				add_action('quick_edit_custom_box', function($columnName, $postType) use ($quickEditFields) {
 					if (isset($quickEditFields[$columnName])) {
-						// this column is set - output a nonce if needed
-						Custom_Post_Type::outputSaveNonce();
-?>
-<fieldset class="inline-edit-col-left formio">
-	<div class="inline-edit-col inline-edit-<?php echo $column_name ?>">
-<?php
-						// generate form handlers for all quick edit inputs and echo them out
-						$forms = Custom_Post_Type::generateMetaboxForms($quickEditFields[$columnName], array());
-
-						foreach ($forms as $metaboxId => $form) {
-							echo $form->getFieldsHTML();
-						}
-?>
-	</div>
-</fieldset>
-<?php
+						AdminUI::renderQuickEditInput($quickEditFields[$columnName]);
 					}
 				}, 10, 2);
 			}
@@ -273,5 +258,34 @@ abstract class AdminUI
 			'title' => $label,
 		));
 		return ob_get_clean();
+	}
+
+	/**
+	 * Renders input sections for post 'quick edit' on the list screens
+	 * @param  Array  $metaBoxDef metabox definitions to render. This is effectively an array of form groups to output - the values take
+	 *                            the same format as the second argument passed to Custom_Post_Type::add_meta_box().
+	 *                            An additional element '__fieldgrouppos' may be present to override the default position specified on a per-group basis.
+	 * @param  string $fieldPos   CSS layout class name for the field group (left, right, center or bottom)
+	 */
+	public static function renderQuickEditInput(Array $metaBoxDef, $fieldPos = 'left')
+	{
+		Custom_Post_Type::outputSaveNonce();
+
+		// generate form handlers for all quick edit inputs and echo them out
+		// :NOTE: we don't output any data since this is filled by JS
+		$forms = Custom_Post_Type::generateMetaboxForms($metaBoxDef, array());
+
+		foreach ($forms as $metaboxId => $form) {
+?>
+<fieldset class="inline-edit-col-<?php echo isset($form['__fieldgrouppos']) ? $form['__fieldgrouppos'] : $fieldPos; ?> formio">
+	<div class="inline-edit-col inline-edit-<?php echo $metaboxId ?>">
+<?php
+
+			echo $form->getFieldsHTML();
+?>
+	</div>
+</fieldset>
+<?php
+		}
 	}
 }

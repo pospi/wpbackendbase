@@ -474,16 +474,47 @@ class Custom_Post_Type
 	 *                               	Accepts a reference to the array of arguments to WP_Query for premodification.
 	 * @param array  $filterHandlers	Array mapping GET parameter names to 'request' action hooks. These callbacks work in the same way as $orderHandler,
 	 *                                 	but are executed based on the presence of the GET parameter indicated.
+	 * @param array  $quickEditFields	An array of form input definitions to output for each column's quick edit inputs.
+	 *                                  Values are keyed by metabox name and structured in the same fashion as with add_meta_box() - note that the combination
+	 *                                  of metabox name & field name is combined with an underscore to generate the final input names - so you should mirror your
+	 *                                  metabox definitions passed to add_meta_box() if you wish to manipulate the same attributes.
 	 * @param int	 $displayActionPriority	priority parameter for manage_posts_custom_column hook used in column cell output.
 	 */
-	public function add_list_column($colId, $colLabel, $displayHandler, $orderHandler = null, $filterHandlers = null, $displayActionPriority = 10)
+	public function add_list_column($colId, $colLabel, $displayHandler, $orderHandler = null, $filterHandlers = null, $quickEditFields = null, $displayActionPriority = 10)
 	{
+		// for attachments - output quick edit data in our table since WP doesn't do this by default
+		if ($this->post_type_name == 'attachment') {
+			static $inlineDataOutput = false;
+			if (!$inlineDataOutput) {
+				// ensure the quick edit javascript is present
+				add_action('admin_enqueue_scripts', array('AdminUI', 'ensureInlineEdit'));
+
+				// output the quickedit template from the post ListTable class
+				add_action('admin_footer', function() {
+					$table = AdminUI::getPostTypeListTable('post');
+					$table->inline_edit();
+				});
+
+				// output the quick edit data for each post in a hidden column
+				$this->list_columns['hidden'] = array(
+					'label' => '',
+					'display' => function($colId, $postId, $postType) {
+						get_inline_data(get_post($postId));
+					}
+				);
+				$inlineDataOutput = true;
+			}
+		}
+
+		// register the list column for adding when we're hooked
 		$this->list_columns[$colId] = array(
 			'label' => $colLabel,
 			'display' => $displayHandler,
 			'order' => $orderHandler,
 			'filters' => $filterHandlers,
+			'quickEdit' => $quickEditFields,
 		);
+
 		// set the column start offset for all our column output
 		$this->displayActionPriority = $displayActionPriority;
 	}
@@ -693,6 +724,19 @@ class Custom_Post_Type
 				$actions[$action] = call_user_func($aCallback, $post);
 			}
 			return $actions;
+		}, 10, 2);
+
+		// QUICK EDIT HOOKS
+		add_action('quick_edit_custom_box', function($columnName, $postType) use ($that) {
+			if ($postType != $that->post_type_name) {
+				// not our post type - ignore
+				return;
+			}
+
+			// process relevant column for quick edit definitions if there is one
+			if (isset($that->list_columns[$columnName]) && isset($that->list_columns[$columnName]['quickEdit'])) {
+				AdminUI::renderQuickEditInput($that->list_columns[$columnName]['quickEdit']);
+			}
 		}, 10, 2);
 	}
 

@@ -4,6 +4,11 @@
 .clearfix { zoom: 1; }
 
 /*-----------------------------------------------------------------------*/
+/* admin list table styles */
+
+table.wp-list-table th.column-hidden { display: none; }
+
+/*-----------------------------------------------------------------------*/
 /* formio overrides & extensions for wordpress admin theme compatibility */
 
 #side-sortables .formio label {
