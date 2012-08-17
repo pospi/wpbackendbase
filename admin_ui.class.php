@@ -201,15 +201,27 @@ abstract class AdminUI
 	// Screen helpers
 	//--------------------------------------------------------------------------
 
+	public static function ensureInlineEdit()
+	{
+		wp_enqueue_script('inline-edit-post');
+		wp_enqueue_script('inline-edit-tax');
+	}
+
 	/**
-	 * Renders out a list table with all its controls, wrapping form elements and scripts
+	 * Renders out a list table with all its controls, wrapping form elements and scripts.
+	 *
+	 * The method attempts to enqueue the inline edit javascript for inclusion in wordpress' headers, but
+	 * if you are using it later in a script you will need to add these yourself in your own init code.
+	 *
 	 * :WARNING: this method uses output buffering
 	 */
 	public static function renderListTablePage(WP_List_Table $listTable, $pageTitle)
 	{
+		// load the inline edit script in case of a post type which doesn't automatically include it
+		add_action('admin_enqueue_scripts', array('AdminUI', 'ensureInlineEdit'));
+
+		// draw the table
 		ob_start();
-		// output the table
-		wp_enqueue_script('inline-edit-post');
 
 		global $wp, $post_type;
 ?>
