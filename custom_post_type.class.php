@@ -29,9 +29,11 @@ class Custom_Post_Type
 	public $meta_fields = array();
 	public $taxonomies = array();
 
-	public $list_columns = array();
+	public $list_columns = array();			// custom columns for admin lists
 	public $removed_list_columns = array();
 	private $displayActionPriority = 10;	// :NOTE: because we run all our columns together, they must all be next to one another
+
+	public $row_actions = array();			// custom row actions for admin list columns
 
 	public $formHandlers = array();	// FormIO instances used to render and validate each metabox
 
@@ -492,6 +494,23 @@ class Custom_Post_Type
 	}
 
 	/**
+	 * Adds a custom row action to the default list screen for this post type.
+	 * Row actions are HTML snippets (usually links) which show up when the row is hovered.
+	 * @param string   $actionName		key for the action ('edit', 'view', 'trash' are usually reserved)
+	 * @param callable $actionRenderCB	a callback for rendering the action string for this action.
+	 *                                  Receives the post object being rendered as a parameter.
+	 */
+	public function add_row_action($actionName, $actionRenderCB)
+	{
+		$this->row_actions[$actionName] = $actionRenderCB;
+	}
+
+	public function remove_row_action($actionName)
+	{
+		$this->add_row_action($actionName, null);
+	}
+
+	/**
 	 * Add a custom callback to be called when records of this type are saved.
 	 * The callback accepts the ID of the post being saved, the post's metadata
 	 * array and the Custom_Post_Type instance as parameters.
@@ -573,19 +592,23 @@ class Custom_Post_Type
 		$headerHook = "manage_edit-{$this->post_type_name}_columns";
 		$cellHook = 'manage_posts_custom_column';
 		$sortHook = "manage_edit-{$this->post_type_name}_sortable_columns";
+		$rowActionHook = "post_row_actions";
 		switch ($this->post_type_name) {
 			case 'attachment':
 				$headerHook = 'manage_media_columns';
 				$cellHook = 'manage_media_custom_column';
 				$sortHook = "manage_upload_sortable_columns";
+				$rowActionHook = "media_row_actions";
 				break;
 			case 'user':
 				$headerHook = 'manage_users_columns';
 				$cellHook = 'manage_users_custom_column';
 				$sortHook = "manage_users_sortable_columns";
+				$rowActionHook = "user_row_actions";
 				break;
 			case 'page':
 				$cellHook = 'manage_pages_custom_column';
+				$rowActionHook = "page_row_actions";
 				break;
 		}
 
@@ -651,6 +674,26 @@ class Custom_Post_Type
 			// return the query with order parameters added
 			return call_user_func($that->list_columns[$vars['orderby']]['order'], $vars);
 		});
+
+		// LIST ROW QUICK ACTIONS
+		add_filter($rowActionHook, function($actions, $post) use ($that) {
+			// ignore if not our post type
+			if ($post->post_type != $that->post_type_name) {
+				return $actions;
+			}
+
+			// process all columns for row actions
+			foreach ($that->row_actions as $action => $aCallback) {
+				if (!isset($aCallback)) {
+					// action removed
+					unset($actions[$action]);
+					continue;
+				}
+				// action added
+				$actions[$action] = call_user_func($aCallback, $post);
+			}
+			return $actions;
+		}, 10, 2);
 	}
 
 	/**
