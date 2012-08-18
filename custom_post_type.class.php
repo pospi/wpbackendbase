@@ -491,8 +491,11 @@ class Custom_Post_Type
 
 				// output the quickedit template from the post ListTable class
 				add_action('admin_footer', function() {
-					$table = AdminUI::getPostTypeListTable('post');
+					list($table, $screen) = AdminUI::getPostTypeListTable('post');
 					$table->inline_edit();
+					if ($screen) {
+						set_current_screen($screen->id);
+					}
 				});
 
 				// output the quick edit data for each post in a hidden column
