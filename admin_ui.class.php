@@ -151,30 +151,32 @@ abstract class AdminUI
 	 */
 	public function getPostTypeListTable($postTypeName)
 	{
-		if (!function_exists('_get_list_table')) {
-			// not in admin, can't do it.
-			return null;
-		}
-
 		// set the current screen so we get the correct hooks executed for the table
 		$resetScreen = get_current_screen();
+
+		if (!class_exists('WP_Posts_List_Table') || !class_exists('WP_Media_List_Table') || !class_exists('WP_Users_List_Table')) {
+			require_once(ABSPATH . '/wp-admin/includes/class-wp-list-table.php');
+			require_once(ABSPATH . '/wp-admin/includes/class-wp-posts-list-table.php');
+			require_once(ABSPATH . '/wp-admin/includes/class-wp-media-list-table.php');
+			require_once(ABSPATH . '/wp-admin/includes/class-wp-users-list-table.php');
+		}
 
 		switch ($postTypeName) {
 			case 'attachment':
 				set_current_screen('media');
-				$wp_list_table = _get_list_table('WP_Media_List_Table');	// :IMPORTANT: table must be constructed AFTER screen is set!
+				$wp_list_table = new WP_Media_List_Table();	// :IMPORTANT: table must be constructed AFTER screen is set!
 				break;
 			case 'user':
 				set_current_screen('users');
-				$wp_list_table = _get_list_table('WP_Users_List_Table');
+				$wp_list_table = new WP_Users_List_Table();
 				break;
 			case 'page':
 				set_current_screen('pages');
-				$wp_list_table = _get_list_table('WP_Posts_List_Table');
+				$wp_list_table = new WP_Posts_List_Table();
 				break;
 			default:
 				set_current_screen('edit-' . $postTypeName);
-				$wp_list_table = _get_list_table('WP_Posts_List_Table');
+				$wp_list_table = new WP_Posts_List_Table();
 				break;
 		}
 		$wp_list_table->prepare_items();
