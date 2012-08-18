@@ -191,7 +191,6 @@ abstract class AdminUI
 	public static function ensureInlineEdit()
 	{
 		wp_enqueue_script('inline-edit-post');
-		wp_enqueue_script('inline-edit-tax');
 	}
 
 	/**
