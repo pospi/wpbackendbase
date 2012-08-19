@@ -39,6 +39,8 @@ class Custom_Post_Type
 
 	private $saveCallbacks = array();	// user-defined callbacks for prehandling post metadata before it is saved
 
+	public $statusTransitions = array();	// user-defined post status transition checks
+
 	private static $postTypeRegister = array();	// all post types created, used to load them for record save / load handling
 
 	// wordpress hooks to use. Overridden in some builtin cases when managing core WP datatypes.
@@ -554,6 +556,25 @@ class Custom_Post_Type
 		$this->saveCallbacks[] = $callback;
 	}
 
+	/**
+	 * Adds a callback for performing some custom logic when the post's status is updated.
+	 *
+	 * The status arguments may be '*' to match any status, or any of:
+	 *  'new', 'auto-draft', 'draft', 'pending', 'publish', 'future', 'private', 'inherit' or 'trash'
+	 * and posts generally transition in roughly that order during their lifetime in the system.
+	 *
+	 * @param string $newStatus old post status
+	 * @param string $oldStatus new post status
+	 * @param callable $callback  callback to execute. Callbacks receive the new status, old status and post object as parameters.
+	 */
+	public function add_status_transition($newStatus, $oldStatus, $callback)
+	{
+		if (!isset($this->statusTransitions[$oldStatus][$newStatus])) {
+			$this->statusTransitions[$oldStatus][$newStatus] = array();
+		}
+		$this->statusTransitions[$oldStatus][$newStatus][] = $callback;
+	}
+
 	//---------------------------------------------------------------------------------
 	// post data handling
 	//---------------------------------------------------------------------------------
@@ -621,6 +642,26 @@ class Custom_Post_Type
 			};
 			add_filter('attachment_fields_to_save', $attachmentSaveMethod, 10, 2);
 		}
+
+		// bind post status transition hooks
+		if ($post_type_name != 'user') {
+ 			add_action('transition_post_status', function($new, $old, $post) use ($that) {
+ 				if ($post->post_type != $that->post_type_name) {
+ 					return;
+ 				}
+ 				foreach ($that->statusTransitions as $oldVal => $hooks) {
+ 					if ($oldVal != $old && $oldVal != '*') continue;
+
+ 					foreach ($hooks as $newVal => $callbacks) {
+ 						if ($newVal != $new && $newVal != '*') continue;
+
+ 						foreach ($callbacks as $method) {
+ 							call_user_func($method, $new, $old, $post);
+ 						}
+ 					}
+ 				}
+ 			}, 10, 3);
+ 		}
 
 		// also bind post type column UI hooks
 		$headerHook = "manage_edit-{$this->post_type_name}_columns";
