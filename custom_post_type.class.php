@@ -918,13 +918,15 @@ class Custom_Post_Type
 				$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
 
 				if ($this->post_type_name != 'user') {
-					if ($metaFields[$field_id_name] === '') {
+					if (!isset($metaFields[$field_id_name])) {
+					} else if ($metaFields[$field_id_name] === '') {
 						delete_post_meta($postId, $field_id_name);
 					} else {
 						update_post_meta($postId, $field_id_name, $metaFields[$field_id_name]);
 					}
 				} else {
-					if ($metaFields[$field_id_name] === '') {
+					if (!isset($metaFields[$field_id_name])) {
+					} else if ($metaFields[$field_id_name] === '') {
 						delete_user_meta($postId, $field_id_name);
 					} else {
 						update_user_meta($postId, $field_id_name, $metaFields[$field_id_name]);
