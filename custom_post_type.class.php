@@ -1028,7 +1028,7 @@ class Custom_Post_Type
 	{
 		if (!isset($meta)) $meta = array();
 
-		$this->formHandlers = self::generateMetaboxForms($this->post_type_name, $this->meta_fields, $meta, $force, $this->formHandlers);
+		$this->formHandlers = self::generateMetaboxForms($this->post_type_name, $post, $this->meta_fields, $meta, $force, $this->formHandlers);
 
 		// process superclass as well
 		if ($this->post_type_superclass) {
@@ -1041,13 +1041,14 @@ class Custom_Post_Type
 	 * Converts an array of metabox & field definitions into FormIO instances for handling
 	 * the submission and rendering of those metaboxes.
 	 * @param  string  $postType		name of the post type we're generating for. Needed to setup autocomplete for custom post type inputs.
+	 * @param  object  $post			the post object we're currently saving, or NULL if the form should be shown blank
 	 * @param  Array   $metabox_defs    metabox definition array. This matches the internal format of $this->meta_fields.
 	 * @param  Array   $meta            existing metadata
 	 * @param  boolean $force           if true, regenerate form handlers if already present
 	 * @param  Array   $boxFormHandlers existing form handlers for detection of existing handlers when $force = false
 	 * @return array of FormIO objects corresponding to each metabox
 	 */
-	public static function generateMetaboxForms($postType, Array $metabox_defs, Array $meta, $force = false, Array $boxFormHandlers = null)
+	public static function generateMetaboxForms($postType, $post, Array $metabox_defs, Array $meta, $force = false, Array $boxFormHandlers = null)
 	{
 		if (!isset($boxFormHandlers)) {
 			$boxFormHandlers = array();
@@ -1100,7 +1101,7 @@ class Custom_Post_Type
 	 * @param  string 		$type  input type being created
 	 * @param  array		$options	options for the field
 	 * @param  FormIO_Field	$field  FormIO field being created
-	 * @param  bool			$postId	the post the form is being loaded for
+	 * @param  bool			$post	the post the form is being loaded for
 	 * @param  array		$meta  loaded metadata array from the post we're displaying
 	 */
 	public static function handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName, $postTypeName)

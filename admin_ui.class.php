@@ -279,7 +279,7 @@ abstract class AdminUI
 
 		// generate form handlers for all quick edit inputs and echo them out
 		// :NOTE: we don't output any data since this is filled by JS
-		$forms = Custom_Post_Type::generateMetaboxForms($postTypeName, $metaBoxDef, array());
+		$forms = Custom_Post_Type::generateMetaboxForms($postTypeName, new stdClass(), $metaBoxDef, array());
 
 		foreach ($forms as $metaboxId => $form) {
 ?>
