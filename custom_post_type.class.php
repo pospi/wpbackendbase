@@ -1088,7 +1088,11 @@ class Custom_Post_Type
 
 					// set passed or default value (:WARNING: must be done after calling setQueryArgs() due to post title lookups for prefilling the list's values)
 					if ($field instanceof FormIOField_Checkbox) {
-						$field->setValue((is_array($meta[$metaKeyName]) && count($meta[$metaKeyName])) ? true : $meta[$metaKeyName]);
+						if (!isset($meta[$metaKeyName])) {
+							$field->setValue(isset($options['default']) ? $options['default'] : false);
+						} else {
+							$field->setValue((is_array($meta[$metaKeyName]) && count($meta[$metaKeyName])) ? true : $meta[$metaKeyName]);
+						}
 					} else if (isset($meta[$metaKeyName]) && $field instanceof FormIOField_Text) {
 						$field->setValue($meta[$metaKeyName]);
 					} else if (isset($options['default'])) {
