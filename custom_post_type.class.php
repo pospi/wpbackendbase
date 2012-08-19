@@ -952,6 +952,11 @@ class Custom_Post_Type
 	public function update_post_terms($postId, Array $taxTerms, $append = false)
 	{
 		foreach ($taxTerms as $taxonomy => $terms) {
+			foreach ($terms as &$t) {
+				if (is_numeric($t)) {
+					$t = intval($t);
+				}
+			}
 			wp_set_object_terms($postId, $terms, $taxonomy, $append);
 		}
 	}
