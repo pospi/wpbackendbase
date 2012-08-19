@@ -151,6 +151,10 @@ abstract class AdminUI
 	 */
 	public function getPostTypeListTable($postTypeName)
 	{
+		if (!function_exists('get_current_screen')) {
+			return;
+		}
+
 		// set the current screen so we get the correct hooks executed for the table
 		$resetScreen = get_current_screen();
 
