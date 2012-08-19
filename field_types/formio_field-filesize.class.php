@@ -20,6 +20,7 @@ class FormIOField_Filesize extends FormIOField_Readonly
 
 	public static function formatBytes($byteVal)
 	{
+		$byteVal = intval($byteVal);
 		$orders = array('bytes',
 			'<abbr title="1 kibibyte = 2^10 bytes = 1024 bytes">KiB</abbr>',
 			'<abbr title="1 mebibyte = 2^20 bytes = 1024 kibibytes = 1,048,576 bytes">MiB</abbr>',
