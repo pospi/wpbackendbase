@@ -878,7 +878,9 @@ class Custom_Post_Type
 	public function update_post_meta($postId, Array $rawMetaFields)
 	{
 		$rawMetaFields = $this->prehandlePostMeta($postId, $rawMetaFields);
-		$metaFields = array();
+		// we force load existing meta fields to be sure that we're getting fresh info - other plugins
+		// or code may have updated the metadata during this save phase
+		$metaFields = $this->get_post_meta($postId);
 
 		// load submission handlers
 		$this->init_form_handlers($rawMetaFields, $postId, true);
