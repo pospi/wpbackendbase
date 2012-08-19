@@ -267,14 +267,15 @@ abstract class AdminUI
 	 *                            the same format as the second argument passed to Custom_Post_Type::add_meta_box().
 	 *                            An additional element '__fieldgrouppos' may be present to override the default position specified on a per-group basis.
 	 * @param  string $fieldPos   CSS layout class name for the field group (left, right, center or bottom)
+	 * @param  string $postTypeName name of the post type we're rendering a quickedit input for - this is required by some metabox inputs to hookup autocomplete details
 	 */
-	public static function renderQuickEditInput(Array $metaBoxDef, $fieldPos = 'left')
+	public static function renderQuickEditInput(Array $metaBoxDef, $fieldPos = 'left', $postTypeName = 'post')
 	{
 		Custom_Post_Type::outputSaveNonce();
 
 		// generate form handlers for all quick edit inputs and echo them out
 		// :NOTE: we don't output any data since this is filled by JS
-		$forms = Custom_Post_Type::generateMetaboxForms($metaBoxDef, array());
+		$forms = Custom_Post_Type::generateMetaboxForms($postTypeName, $metaBoxDef, array());
 
 		foreach ($forms as $metaboxId => $form) {
 ?>

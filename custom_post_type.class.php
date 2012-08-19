@@ -981,7 +981,7 @@ class Custom_Post_Type
 	{
 		if (!isset($meta)) $meta = array();
 
-		$this->formHandlers = self::generateMetaboxForms($this->meta_fields, $meta, $force, $this->formHandlers);
+		$this->formHandlers = self::generateMetaboxForms($this->post_type_name, $this->meta_fields, $meta, $force, $this->formHandlers);
 
 		// process superclass as well
 		if ($this->post_type_superclass) {
@@ -993,13 +993,14 @@ class Custom_Post_Type
 	/**
 	 * Converts an array of metabox & field definitions into FormIO instances for handling
 	 * the submission and rendering of those metaboxes.
+	 * @param  string  $postType		name of the post type we're generating for. Needed to setup autocomplete for custom post type inputs.
 	 * @param  Array   $metabox_defs    metabox definition array. This matches the internal format of $this->meta_fields.
 	 * @param  Array   $meta            existing metadata
 	 * @param  boolean $force           if true, regenerate form handlers if already present
 	 * @param  Array   $boxFormHandlers existing form handlers for detection of existing handlers when $force = false
 	 * @return array of FormIO objects corresponding to each metabox
 	 */
-	public static function generateMetaboxForms(Array $metabox_defs, Array $meta, $force = false, Array $boxFormHandlers = null)
+	public static function generateMetaboxForms($postType, Array $metabox_defs, Array $meta, $force = false, Array $boxFormHandlers = null)
 	{
 		if (!isset($boxFormHandlers)) {
 			$boxFormHandlers = array();
@@ -1028,7 +1029,7 @@ class Custom_Post_Type
 					$form->addField($fieldName, $label, $type);
 					$field = $form->getLastField();
 
-					self::handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName);
+					self::handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName, $postType);
 
 					// set passed or default value (:WARNING: must be done after calling setQueryArgs() due to post title lookups for prefilling the list's values)
 					if ($field instanceof FormIOField_Checkbox) {
@@ -1055,7 +1056,7 @@ class Custom_Post_Type
 	 * @param  bool			$postId	the post the form is being loaded for
 	 * @param  array		$meta  loaded metadata array from the post we're displaying
 	 */
-	public static function handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName)
+	public static function handleMetaboxConfig($type, $options, $field, $post, $meta, $metaBoxId, $fieldName, $postTypeName)
 	{
 		// set any field validators that need setting
 		if (isset($options['validators'])) {
@@ -1112,7 +1113,7 @@ class Custom_Post_Type
 				}
 				$subField = $field->createSubField($f, self::get_field_id_name($name), $name);
 
-				self::handleMetaboxConfig($f, $subOpts, $subField, $post, $meta, $metaBoxId, $fieldName);
+				self::handleMetaboxConfig($f, $subOpts, $subField, $post, $meta, $metaBoxId, $fieldName, $postTypeName);
 			}
 			unset($options['fields']);
 		}
@@ -1137,7 +1138,7 @@ class Custom_Post_Type
 			$args = array_merge(array(
 				'metabox' => $metaBoxId, // required for loading fields in post data autocomplete script
 				'metakey' => $fieldName,
-				'hostposttype' => $this->post_type_name,
+				'hostposttype' => $postTypeName,
 			), $args);
 
 			$field->setQueryArgs(isset($options['post_type']) ? $options['post_type'] : null, $args);
