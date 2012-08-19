@@ -831,22 +831,23 @@ class Custom_Post_Type
 	/**
 	 * Update metadata for a post, but only metadata of this post type's.
 	 * @param  int    $postId     ID of post to update metadata for
-	 * @param  Array  $metaFields Flat array of metadata keys/values.
-	 *                            Key names are given by lowerase concatenation of the metabox's title and field name with underscores.
+	 * @param  Array  $rawMetaFields Flat array of metadata keys/values.
+	 *                               Key names are given by lowerase concatenation of the metabox's title and field name with underscores.
 	 */
-	public function update_post_meta($postId, Array $metaFields)
+	public function update_post_meta($postId, Array $rawMetaFields)
 	{
-		$metaFields = $this->prehandlePostMeta($postId, $metaFields);
+		$rawMetaFields = $this->prehandlePostMeta($postId, $rawMetaFields);
+		$metaFields = array();
 
 		// load submission handlers
-		$this->init_form_handlers($metaFields, $postId, true);
+		$this->init_form_handlers($rawMetaFields, $postId, true);
 
 		// Loop through each meta box
 		foreach ($this->meta_fields as $title => $fields) {
 			// load the form handler responsible for this metabox and validate the data against it
 			$inputHandler = $this->formHandlers[self::get_field_id_name($title)];
 
-			$inputHandler->importData($metaFields, true);
+			$inputHandler->importData($rawMetaFields, true);
 
 			if (!$inputHandler->validate()) {
 				$that = $this;
@@ -862,6 +863,9 @@ class Custom_Post_Type
 			$validData = $inputHandler->getData();
 			$metaData = array();
 			foreach ($validData as $k => $v) {
+				if (!isset($v)) {
+					continue;	// prevent overwriting values with NULLs - only empty strings indicate resetting a value
+				}
 				$metaData[preg_replace('/^' . self::META_POST_KEY . '\[(.*)\]$/', '$1', $k)] = $v;
 			}
 			$metaFields = array_merge($metaFields, $metaData);
@@ -871,13 +875,13 @@ class Custom_Post_Type
 				$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
 
 				if ($this->post_type_name != 'user') {
-					if (!isset($metaFields[$field_id_name])) {
+					if ($metaFields[$field_id_name] === '') {
 						delete_post_meta($postId, $field_id_name);
 					} else {
 						update_post_meta($postId, $field_id_name, $metaFields[$field_id_name]);
 					}
 				} else {
-					if (!isset($metaFields[$field_id_name])) {
+					if ($metaFields[$field_id_name] === '') {
 						delete_user_meta($postId, $field_id_name);
 					} else {
 						update_user_meta($postId, $field_id_name, $metaFields[$field_id_name]);
