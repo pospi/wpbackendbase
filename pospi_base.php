@@ -49,8 +49,10 @@ if (is_admin()) {
 add_action('admin_enqueue_scripts',function(){
 	// wp_register_script("jquery","https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js",array(),"1.6.4");
 	// wp_enqueue_script("jquery");
-	wp_register_script("jquery_ui","http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js",array('jquery'),"1.8.18");
-	wp_enqueue_script("jquery_ui");
+	wp_enqueue_script("jquery-ui");			// base jqUI package from wordpress
+	wp_enqueue_script('jquery-ui-dialog');	// UI.Dialog
+	wp_enqueue_script('jquery-ui-tabs');	// UI.Tabs
+
 	wp_register_script("jquery_tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jquery_ui'), '1.6.0');
 	wp_enqueue_script("jquery_tokeninput");
 	wp_register_script('formio', plugins_url('formio/formio.js', __FILE__), array('jquery_tokeninput'));
@@ -73,8 +75,9 @@ add_action('admin_enqueue_scripts',function(){
 
 // Custom Css
 add_action( 'admin_init', function() {
-	wp_register_style('jquery_ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css');
-	wp_enqueue_style('jquery_ui');
+	wp_register_style('jquery-ui-base', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css');
+	wp_enqueue_style('jquery-ui-base');
+
 	wp_register_style('jquery_tokeninput', plugins_url('formio/lib/jquery-tokeninput/styles/token-input.css', __FILE__));
 	wp_enqueue_style('jquery_tokeninput');
     wp_register_style('formio_css', plugins_url('formio/formio.css', __FILE__));
