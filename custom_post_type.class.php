@@ -1157,7 +1157,7 @@ class Custom_Post_Type
 		// add field options if this is a multiple input type
 		if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
 			foreach ($options['values'] as $v) {
-				$field->setOption(self::get_field_id_name($v), $v);
+				$field->setOption($v, $v);
 			}
 			unset($options['values']);
 		}
