@@ -550,6 +550,9 @@ class Custom_Post_Type
 	 * Add a custom callback to be called when records of this type are saved.
 	 * The callback accepts the ID of the post being saved, the post's metadata
 	 * array and the Custom_Post_Type instance as parameters.
+	 *
+	 * The metadata array should be modified as needed to change it before it is saved
+	 * later by update_post_meta().
 	 */
 	public function add_save_handler($callback)
 	{
