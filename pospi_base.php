@@ -53,7 +53,7 @@ add_action('admin_enqueue_scripts',function(){
 	wp_enqueue_script('jquery-ui-dialog');	// UI.Dialog
 	wp_enqueue_script('jquery-ui-tabs');	// UI.Tabs
 
-	wp_register_script("jquery_tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jquery_ui'), '1.6.0');
+	wp_register_script("jquery_tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__));
 	wp_enqueue_script("jquery_tokeninput");
 	wp_register_script('formio', plugins_url('formio/formio.js', __FILE__), array('jquery_tokeninput'));
 	wp_enqueue_script('formio');
