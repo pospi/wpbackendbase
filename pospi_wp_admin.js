@@ -6,12 +6,22 @@
 		// add img class to formIO image input parents to allow separate styling of actual tokeninput input
 		$('li.img.token-input-token').closest('token-input-list').addClass('img');
 
-		// override form field name retriever to use custom_meta instead of #post (which it has to be in wordpress)
+		// override form field name retriever to use custom_meta instead of #post or other admin form IDs (which it has to be in wordpress)
+		var oldGetFieldId = FormIO.prototype.getFieldId;
 		FormIO.prototype.getFieldId = function(fldname) {
-			return 'custom_meta_' + fldname.replace(/\[/g, '_').replace(/\]/g, '');
+			var id = this.elements.attr('id');
+			if (id == 'post' || id == 'media-single-form' || id == 'file-form' || id == 'addlink' || id == 'editlink' || id == 'createuser' || id == 'your-profile') {
+				return 'custom_meta_' + fldname.replace(/\[/g, '_').replace(/\]/g, '');
+			}
+			return oldGetFieldId.call(this, fldname);
 		};
+		var oldGetFieldName = FormIO.prototype.getFieldName;
 		FormIO.prototype.getFieldName = function(fldId) {
-			return fldId.replace(new RegExp('^custom_meta_'), '');
+			var id = this.elements.attr('id');
+			if (id == 'post' || id == 'media-single-form' || id == 'file-form' || id == 'addlink' || id == 'editlink' || id == 'createuser' || id == 'your-profile') {
+				return fldId.replace(new RegExp('^custom_meta_'), '');
+			}
+			return oldGetFieldName.call(this, fldId);
 		};
 
 		//--------------------------------------------------------------------------
