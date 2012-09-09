@@ -26,7 +26,7 @@ class FormIOField_Richedit extends FormIOField_Text
 
 		// user output buffering to capture the editor content. sorry compatibilty :/
 		ob_start();
-		wp_editor($this->value, $this->getName());
+		wp_editor($this->value, $this->getFieldId(), array('textarea_name' => $this->getName()));
 		$vars['editor'] = ob_get_clean();
 
 		return $vars;
