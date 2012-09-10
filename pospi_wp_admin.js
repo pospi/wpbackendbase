@@ -24,6 +24,40 @@
 			return oldGetFieldName.call(this, fldId);
 		};
 
+		// override the form field submit action to indicate an error in the WP UI instead of failing the submission silently
+		var oldOnSubmit = FormIO.prototype.onSubmit;
+		FormIO.prototype.onSubmit = function()
+		{
+			var ok = oldOnSubmit.call(this);
+
+			// remove notifications from previous run
+			$('#wpbody-content > .wrap').find('.formio-notifications').remove();
+
+			if (!ok) {
+				// reset the WP UI to its pre-submission state
+				$('#publish').removeClass('button-primary-disabled');
+				$('#save-post').removeClass('button-disabled');
+				$('#ajax-loading').hide();
+
+				// add notifications of errors
+				var messages = {},
+					messageStr = '',
+					that = this;
+				$.each(this.failedValidators, function(field, validator) {
+					var el = $('#' + field);
+					messages[that.getReadableFieldName(el) + " failed validation."] = true;		// :TODO: validator messages
+				});
+				$.each(messages, function(msg, v) {
+					messageStr += "<div class=\"error formio-notifications\"><p>" + msg + "</p></div>";
+				});
+				var notifications = $(messageStr);
+
+				$('#wpbody-content > .wrap').prepend(notifications);
+			}
+
+			return ok;
+		}
+
 		//--------------------------------------------------------------------------
 		// init form UI javascript
 
