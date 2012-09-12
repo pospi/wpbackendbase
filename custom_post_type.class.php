@@ -76,7 +76,16 @@ class Custom_Post_Type
 
 		// override some values when managing user metadata
 		if ($this->post_type_name == 'user') {
-			$this->saveHooks = array('profile_update', 'edit_user_profile_update');
+			$this->saveHooks = array('profile_update', 'user_register', 'edit_user_profile_update');
+
+			// also bind an action for adding an input to the user registration page.
+			// :SHONK: The only place it can be done is in the form tag - hope to god nobody else is depending on this hack!!
+			add_action('user_new_form_tag', function() {
+				echo ">";
+				Custom_Post_Type::outputSaveNonce();
+				echo "<input type=\"hidden\" name=\"" . Custom_Post_Type::IS_USER_SAVE_FLAG . "\" value=\"1\" />";
+				echo "<span></span";	// close off the trailing tag from the user-new template
+			}, PHP_INT_MAX);
 		}
 
 		// Listen for the save post hook
@@ -594,10 +603,14 @@ class Custom_Post_Type
 
 		// define save handler
 		$that = $this;
-		$saveMethod = function($postId) use( $that, $post_type_name )
+		$saveMethod = function($postId, $notUsed1 = null, $notUsed2 = null) use( $that, $post_type_name )
 		{
 			// determine the type of posts, since we want to be able to target similar objects as posts...
 			$thisPt = get_post_type($postId);
+			if ($thisPt == 'revision') {
+				$creatingUser = true;
+				$thisPt = get_post_type($post->post_parent);
+			}
 			if ((!$thisPt || $thisPt === 'post') && !empty($_POST[Custom_Post_Type::IS_USER_SAVE_FLAG])) {
 				$thisPt = 'user';
 			}
@@ -607,8 +620,13 @@ class Custom_Post_Type
 
 			if ( isset($_POST[Custom_Post_Type::NONCE_FIELD_NAME]) && ! wp_verify_nonce( $_POST[Custom_Post_Type::NONCE_FIELD_NAME], plugin_basename(__FILE__) ) ) return;
 
-			if( isset( $_POST[Custom_Post_Type::META_POST_KEY] ) && $postId && $thisPt == $post_type_name ) {
-				$that->update_post_meta($postId, $_POST[Custom_Post_Type::META_POST_KEY]);
+			if( $postId && $thisPt == $post_type_name ) {
+				$that->update_post_meta($postId, isset($_POST[Custom_Post_Type::META_POST_KEY]) ? $_POST[Custom_Post_Type::META_POST_KEY] : array());
+
+				// clear validation errors when creating users - they aren't supposed to be valid yet!
+				if ($creatingUser && $thisPt == 'user') {
+					unset($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE]);
+				}
 			}
 
 			// special case for handling taxonomy updates for users & attachments - this is not builtin
@@ -636,7 +654,11 @@ class Custom_Post_Type
 		// bind to appropriate save hook
 		if ($this->post_type_name != 'attachment') {
 			foreach ($this->saveHooks as $hook) {
-				add_action($hook, $saveMethod);
+				if ($hook == 'user_register') {
+					add_action($hook, $saveMethod, 10, 3);
+				} else {
+					add_action($hook, $saveMethod);
+				}
 			}
 		} else {
 			$attachmentSaveMethod = function($post, $attachment) use ($saveMethod) {
