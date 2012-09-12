@@ -1247,6 +1247,11 @@ class Custom_Post_Type
 			$field->setActivePost($post);
 		}
 
+		// handle extradata parameter callback for autocomplete fields
+		if (isset($options['extradata']) && is_callable($options['extradata'])) {
+			$options['extradata'] = call_user_func($options['extradata'], $post, $meta);
+		}
+
 		// add all remaining options as field display attributes
 		foreach ($options as $opt => $val) {
 			$field->setAttribute($opt, $val);
