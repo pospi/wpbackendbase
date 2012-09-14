@@ -25,7 +25,8 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		{$hint? <p class="hint">$hint</p>}
 	</div>';
 
-	const AJAX_HOOK_NAME = 'wp_ajax_posttype_input_autocomplete';		// this should be bound to FormIOField_Posttypes::__responseHandler
+	const AJAX_HOOK_NAME = 'wp_ajax_posttype_input_autocomplete';		// these should be bound to FormIOField_Posttypes::__responseHandler
+	const AJAX_HOOK_NAME_FRONTEND = 'wp_ajax_nopriv_posttype_input_autocomplete';	// only use if you want available from the frontend!
 	const DEFAULT_POST_LIMIT = 30;
 
 	protected static $DEFAULT_POST_TYPE = 'post';
@@ -103,10 +104,16 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		$args = array_merge($args, $self::$DEFAULT_QUERY_ARGS);
 
 		// update autocomplete url to load correct post type
-		$this->updateAutocompleteUrl($args['hostposttype'], $args['metabox'], $args['metakey']);
-		unset($args['hostposttype']);
-		unset($args['metabox']);
-		unset($args['metakey']);
+		if (isset($args['metabox'])) {
+			$this->updateAutocompleteUrl($args['hostposttype'], $args['metabox'], $args['metakey']);
+			unset($args['hostposttype']);
+			unset($args['metabox']);
+			unset($args['metakey']);
+		} else if (isset($args['fio_form'])) {
+			$this->updateFrontendAutocompleteUrl($args['fio_form'], $args['fio_field']);
+			unset($args['fio_form']);
+			unset($args['fio_field']);
+		}
 
 		$this->queryArgs = $args;
 
@@ -123,22 +130,37 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		$this->setAutocompleteUrl(admin_url("admin-ajax.php?action=" . preg_replace('/^wp_ajax_/', '', self::AJAX_HOOK_NAME) . "&pt={$postType}&form={$metabox}&field={$metakey}"));
 	}
 
+	protected function updateFrontendAutocompleteUrl($formSlug, $fieldID)
+	{
+		$this->setAutocompleteUrl(admin_url("admin-ajax.php?action=" . preg_replace('/^wp_ajax_/', '', self::AJAX_HOOK_NAME_FRONTEND) . "&fio_form={$formSlug}&fio_field={$fieldID}"));
+	}
+
 	//--------------------------------------------------------------------------
 
 	// This should be bound to an appropriate admin ajax action
 	public static function __responseHandler()
 	{
 		// load args
-		$postType = isset($_GET['pt']) ? $_GET['pt'] : 'post';
-		$metaBox = $_GET['form'] ? $_GET['form'] : null;
-		$metaKey = $_GET['field'] ? $_GET['field'] : null;
+		$formId = isset($_GET['form']) ? $_GET['form'] : null;
+		$fieldKey = isset($_GET['field']) ? $_GET['field'] : null;
 
-		// load post type class & ensure form inputs have been setup
-		$postType = Custom_Post_Type::get_post_type($postType);
-		$postType->init_form_handlers();
+		if ($formId === null && $fieldKey === null && class_exists('FormIOBuilder')) {
+			// not from backend. attempt loading from FormIO plugin frontend if the plugin is installed.
+			$formId = isset($_GET['fio_form']) ? $_GET['fio_form'] : null;
+			$fieldKey = isset($_GET['fio_field']) ? $_GET['fio_field'] : null;
 
-		// load field by name
-		$field = $postType->formHandlers[$metaBox]->getField($metaKey);
+			$form = FormIOBuilder::loadForm($formId);
+		} else {
+			// load post type class & ensure form inputs have been setup
+			$postType = isset($_GET['pt']) ? $_GET['pt'] : 'post';
+			$postType = Custom_Post_Type::get_post_type($postType);
+			$postType->init_form_handlers();
+
+			// load field by name
+			$form = $postType->formHandlers[$formId];
+		}
+
+		$field = $form->getField($fieldKey);
 
 		// run field query & output it
 		header('Content-type: application/json');
