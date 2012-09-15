@@ -20,7 +20,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		<label for="{$id}">{$desc}{$required? <span class="required">*</span>}</label>
 		<input type="hidden" name="{$name}"{$value? value="$value"}{$extradata? data-fio-value-metadata="$extradata"} />
 		<input type="text" name="{$friendlyName}" id="{$id}"{$friendlyValue? value="$friendlyValue"}{$readonly? readonly="readonly"}{$maxlen? maxlength="$maxlen"}{$behaviour? data-fio-type="$behaviour"}{$validation? data-fio-validation="$validation"} data-fio-searchurl="{$searchurl}"{$multiple? data-fio-multiple="$multiple"}{$delimiter? data-fio-delimiter="$delimiter"}{$dependencies? data-fio-depends="$dependencies"} />
-		<a class="new" href="{$newItemUrl}" target="_blank">New</a>
+		{$newItemUrl?$newItemUrl}
 		{$error?<p class="err">$error</p>}
 		{$hint? <p class="hint">$hint</p>}
 	</div>';
@@ -83,6 +83,13 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 			}
 
 			$vars['extradata'] = htmlspecialchars(json_encode($extradata));	// allows passing other label data to jquery.tokeninput & other plugins wishing to read it
+		}
+
+		// new item URL should only be show on admin pages
+		if (is_admin()) {
+			$vars['newItemUrl'] = "<a class=\"new\" href=\"{$vars['newItemUrl']}\" target=\"_blank\">New</a>";
+		} else {
+			unset($vars['newItemUrl']);
 		}
 
 		return $vars;
