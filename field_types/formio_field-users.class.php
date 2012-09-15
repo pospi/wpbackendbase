@@ -36,7 +36,9 @@ class FormIOField_Users extends FormIOField_Posttypes
 		if (isset($qargs['role']) && is_array($qargs['role'])) {
 			// query for multiple roles
 			foreach ($qargs['role'] as $role) {
-				$q = new WP_User_Query(array('role' => $role) + $qargs);
+				$newArgs = $qargs;
+				$newArgs['role'] = $role;
+				$q = new WP_User_Query($newArgs);
 				$results = $q->get_results();
 
 				if ($results) {
