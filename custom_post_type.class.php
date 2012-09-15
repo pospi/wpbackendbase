@@ -1183,7 +1183,7 @@ class Custom_Post_Type
 		}
 
 		// add field options if this is a multiple input type
-		if (in_array($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
+		if (FormIO::fieldIsInstanceOfAny($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
 			foreach ($options['values'] as $v) {
 				$field->setOption($v, $v);
 			}
@@ -1191,7 +1191,7 @@ class Custom_Post_Type
 		}
 
 		// add subfields for group inputs
-		else if ($type == 'group') {
+		else if (FormIO::fieldIsInstanceOf($type, 'group')) {
 			foreach ($options['fields'] as $name => $f) {
 				if (is_array($f)) {
 					list($f, $subOpts) = $f;
@@ -1206,13 +1206,13 @@ class Custom_Post_Type
 		}
 
 		// set the field type for repeater inputs
-		else if ($type == 'repeater') {
+		else if (FormIO::fieldIsInstanceOf($type, 'repeater')) {
 			$field->setRepeaterType($options['field_type']);
 			unset($options['repeater']);
 		}
 
 		// set post type and query options for post type fields
-		else if (in_array($type, array('posttypes', 'links', 'attachments', 'users'))) {
+		else if (FormIO::fieldIsInstanceOfAny($type, array('posttypes', 'links', 'attachments', 'users'))) {
 			// handle query arg callbacks
 			if (isset($options['query_args']) && $options['query_args'] instanceof Closure) {
 				$args = $options['query_args'];
@@ -1240,7 +1240,7 @@ class Custom_Post_Type
 		}
 
 		// pass the post data to taxonomy input types
-		else if ($type == 'taxonomy') {
+		else if (FormIO::fieldIsInstanceOf($type, 'taxonomy')) {
 			if (isset($options['taxonomy'])) {
 				$field->setTaxonomy($options['taxonomy']);
 			}
