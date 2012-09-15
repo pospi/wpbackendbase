@@ -57,14 +57,16 @@ class FormIOField_Users extends FormIOField_Posttypes
 	protected function getQueryResults()
 	{
 		$postIds = array();
-		foreach ($this->results as $post) {
-			$postResult = array(
-				'name' => isset($post->data->user_firstname) ? ($post->data->user_firstname . ' ' . $post->data->user_lastname) : $post->data->display_name,
-				'id' => $post->ID,
-			);
-			$this->addPostTypeVars($postResult, $post);
+		if ($this->results) {
+			foreach ($this->results as $post) {
+				$postResult = array(
+					'name' => isset($post->data->user_firstname) ? ($post->data->user_firstname . ' ' . $post->data->user_lastname) : $post->data->display_name,
+					'id' => $post->ID,
+				);
+				$this->addPostTypeVars($postResult, $post);
 
-			$postIds[$post->ID] = $postResult;
+				$postIds[$post->ID] = $postResult;
+			}
 		}
 
 		return $postIds;
