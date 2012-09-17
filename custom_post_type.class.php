@@ -1192,15 +1192,17 @@ class Custom_Post_Type
 
 		// add subfields for group inputs
 		else if (FormIO::fieldIsInstanceOf($type, 'group')) {
-			foreach ($options['fields'] as $name => $f) {
-				if (is_array($f)) {
-					list($f, $subOpts) = $f;
-				} else {
-					$subOpts = array();
-				}
-				$subField = $field->createSubField($f, self::get_field_id_name($name), $name);
+			if (isset($options['fields'])) {
+				foreach ($options['fields'] as $name => $f) {
+					if (is_array($f)) {
+						list($f, $subOpts) = $f;
+					} else {
+						$subOpts = array();
+					}
+					$subField = $field->createSubField($f, self::get_field_id_name($name), $name);
 
-				self::handleMetaboxConfig($f, $subOpts, $subField, $post, $meta, $metaBoxId, $fieldName, $postTypeName);
+					self::handleMetaboxConfig($f, $subOpts, $subField, $post, $meta, $metaBoxId, $fieldName, $postTypeName);
+				}
 			}
 			unset($options['fields']);
 		}
