@@ -910,11 +910,20 @@ class Custom_Post_Type
 		// load submission handlers
 		$this->init_form_handlers($rawMetaFields, $postId, true);
 
+		// index our raw metadata by field names used within the form
+		foreach ($rawMetaFields as &$f) {
+			$f = self::META_POST_KEY . '[' . $f . ']';
+		}
+
 		// Loop through each meta box
 		foreach ($this->meta_fields as $title => $fields) {
 			// load the form handler responsible for this metabox and validate the data against it
 			$inputHandler = $this->formHandlers[self::get_field_id_name($title)];
 
+			// tell the form that it's already had default data provided to stop values being cleared with defaults
+			$inputHandler->submitted = true;
+
+			// bring in the subset of data relevant to this metabox section
 			$inputHandler->importData($rawMetaFields, true);
 
 			if (!$inputHandler->validate()) {
@@ -929,6 +938,7 @@ class Custom_Post_Type
 
 			// merge validated data from formIO instance back onto metadata
 			$validData = $inputHandler->getData();
+
 			$metaData = array();
 			foreach ($validData as $k => $v) {
 				if (!isset($v)) {
