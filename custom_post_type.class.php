@@ -608,6 +608,7 @@ class Custom_Post_Type
 			// determine the type of posts, since we want to be able to target similar objects as posts...
 			$thisPt = get_post_type($postId);
 			if ($thisPt == 'revision') {
+				$post = get_post($postId);
 				$creatingUser = true;
 				$thisPt = get_post_type($post->post_parent);
 			}
