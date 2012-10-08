@@ -9,7 +9,7 @@
 		// override form field name retriever to use custom_meta instead of #post or other admin form IDs (which it has to be in wordpress)
 		var oldGetFieldId = FormIO.prototype.getFieldId;
 		FormIO.prototype.getFieldId = function(fldname) {
-			var id = this.elements.attr('id');
+			var id = this.elements.closest('form').attr('id');
 			if (id == 'post' || id == 'media-single-form' || id == 'file-form' || id == 'addlink' || id == 'editlink' || id == 'createuser' || id == 'your-profile') {
 				return 'custom_meta_' + fldname.replace(/\[/g, '_').replace(/\]/g, '');
 			}
@@ -17,7 +17,7 @@
 		};
 		var oldGetFieldName = FormIO.prototype.getFieldName;
 		FormIO.prototype.getFieldName = function(fldId) {
-			var id = this.elements.attr('id');
+			var id = this.elements.closest('form').attr('id');
 			if (id == 'post' || id == 'media-single-form' || id == 'file-form' || id == 'addlink' || id == 'editlink' || id == 'createuser' || id == 'your-profile') {
 				return fldId.replace(new RegExp('^custom_meta_'), '');
 			}
