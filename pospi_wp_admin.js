@@ -71,7 +71,10 @@
 			});
 		};
 
-		metaboxes.closest('form').formio({
+		var postForm = metaboxes.closest('form'),
+			postBoxes = postForm.find('.postbox.formio .inside');
+
+		postBoxes.formio({
 			setupRoutines : {
 				// custom (or builtin) post type inputs
 				"[data-fio-type='posttype_attachment']" : function(el) {
@@ -138,6 +141,8 @@
 				"[data-fio-type='twitter_user']" : initUrlInput
 			}
 		});
+
+		postBoxes.formio('get').setupForm(postForm);
 
 		// load parallax preview of image attachments
 		initThumbParallax($('ul.token-input-list li.img div'));
