@@ -84,6 +84,24 @@ li.token-input-token.img .token-input-delete-token {
 	right: 2px;
 }
 
+/* make metabox tab backgrounds clear */
+.postbox.formio .ui-tabs.ui-widget-content {
+	background: transparent;
+	border: none;
+}
+#poststuff .inside.ui-tabs {
+	margin: 0;
+	padding: 0;
+}
+.formio .formnav.ui-widget-header {
+	background: transparent;
+	border-bottom: 1px solid #D3D3D3;
+	border-radius: 0;
+	-moz-border-radius: 0;
+	-webkit-border-radius: 0;
+	-o-border-radius: 0;
+}
+
 /* make forms smaller on the media page or they will be way too wide */
 .media-item .formio { width: 620px; }
 .media-item .formio legend { font-weight: bold; font-size: 13px; }
