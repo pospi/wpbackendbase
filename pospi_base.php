@@ -47,36 +47,56 @@ if (is_admin()) {
 
 // Custom Javascript
 add_action('admin_enqueue_scripts',function(){
-	// wp_register_script("jquery","https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js",array(),"1.6.4");
-	// wp_enqueue_script("jquery");
-	wp_enqueue_script("jquery-ui");			// base jqUI package from wordpress
-	wp_enqueue_script('jquery-ui-dialog');	// UI.Dialog
-	wp_enqueue_script('jquery-ui-tabs');	// UI.Tabs
-	wp_enqueue_script('jquery-ui-datepicker');	// UI.Datepicker
+	$scheme = is_ssl() ? 'https://' : 'http://';
 
-	wp_register_script("jquery_tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__));
+	// builtin jQuery is too old to work with our scripts, so force an update :/
+	wp_deregister_script("jquery");
+	wp_deregister_script("jquery-ui");
+	wp_deregister_script("jquery-ui-core");
+	wp_deregister_script("jquery-ui-widget");
+	wp_deregister_script("jquery-ui-mouse");
+	wp_deregister_script("jquery-ui-accordion");
+	wp_deregister_script("jquery-ui-autocomplete");
+	wp_deregister_script("jquery-ui-slider");
+	wp_deregister_script("jquery-ui-tabs");
+	wp_deregister_script("jquery-ui-sortable");
+	wp_deregister_script("jquery-ui-draggable");
+	wp_deregister_script("jquery-ui-droppable");
+	wp_deregister_script("jquery-ui-selectable");
+	wp_deregister_script("jquery-ui-datepicker");
+	wp_deregister_script("jquery-ui-resizable");
+	wp_deregister_script("jquery-ui-dialog");
+	wp_deregister_script("jquery-ui-button");
+	wp_register_script("jquery", "{$scheme}ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js", array(), '1.8.2', false);
+	wp_enqueue_script('jquery');
+	wp_register_script("jquery-ui", "{$scheme}ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js", array('jquery'), '1.8.23', true);
+	wp_enqueue_script('jquery-ui');
+
+	wp_register_script("jquery_tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jquery-ui'), '1.6.0', true);
 	wp_enqueue_script("jquery_tokeninput");
-	wp_register_script('formio', plugins_url('formio/formio.js', __FILE__), array('jquery_tokeninput'));
+	wp_register_script('formio', plugins_url('formio/formio.js', __FILE__), array('jquery_tokeninput'), null, true);
 	wp_enqueue_script('formio');
 
-	wp_register_script('jcparallax', plugins_url('jcparallax/jcparallax.js', __FILE__), array('jquery'));
+	wp_register_script('jcparallax', plugins_url('jcparallax/jcparallax.js', __FILE__), array('jquery'), null, true);
 	wp_enqueue_script('jcparallax');
-	wp_register_script('jcparallax-t', plugins_url('jcparallax/jcp-transitioninterval.js', __FILE__), array('jquery', 'jcparallax'));
+	wp_register_script('jcparallax-t', plugins_url('jcparallax/jcp-transitioninterval.js', __FILE__), array('jquery', 'jcparallax'), null, true);
 	wp_enqueue_script('jcparallax-t');
-	wp_register_script('jcparallax-a', plugins_url('jcparallax/jcp-animator.js', __FILE__), array('jquery', 'jcparallax-t'));
+	wp_register_script('jcparallax-a', plugins_url('jcparallax/jcp-animator.js', __FILE__), array('jquery', 'jcparallax-t'), null, true);
 	wp_enqueue_script('jcparallax-a');
-	wp_register_script('jcparallax-l', plugins_url('jcparallax/jcp-layer.js', __FILE__), array('jquery', 'jcparallax-a'));
+	wp_register_script('jcparallax-l', plugins_url('jcparallax/jcp-layer.js', __FILE__), array('jquery', 'jcparallax-a'), null, true);
 	wp_enqueue_script('jcparallax-l');
-	wp_register_script('jcparallax-vp', plugins_url('jcparallax/jcp-viewport.js', __FILE__), array('jquery', 'jcparallax-l'));
+	wp_register_script('jcparallax-vp', plugins_url('jcparallax/jcp-viewport.js', __FILE__), array('jquery', 'jcparallax-l'), null, true);
 	wp_enqueue_script('jcparallax-vp');
 
-	wp_register_script('pospi-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio'));
+	wp_register_script('pospi-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio'), null, true);
 	wp_enqueue_script('pospi-admin-js');
 });
 
 // Custom Css
 add_action( 'admin_init', function() {
-	wp_register_style('jquery-ui-base', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css');
+	$scheme = is_ssl() ? 'https://' : 'http://';
+
+	wp_register_style('jquery-ui-base', "{$scheme}ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css");
 	wp_enqueue_style('jquery-ui-base');
 
 	wp_register_style('jquery_tokeninput', plugins_url('formio/lib/jquery-tokeninput/styles/token-input.css', __FILE__));
