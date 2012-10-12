@@ -142,7 +142,7 @@
 			}
 		});
 
-		postBoxes.formio('get').setupForm(postForm);
+		postBoxes.formio('setupForm', postForm);
 
 		// load parallax preview of image attachments
 		initThumbParallax($('ul.token-input-list li.img div'));
