@@ -69,7 +69,9 @@ add_action('admin_enqueue_scripts',function(){
 	wp_deregister_script("jquery-ui-button");
 	wp_register_script("jquery", "{$scheme}ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js", array(), '1.8.2', false);
 	wp_enqueue_script('jquery');
-	wp_register_script("jquery-ui", "{$scheme}ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js", array('jquery'), '1.8.23', true);
+	wp_register_script('jqNoConflict', plugins_url('jquery.noconflict.js', __FILE__), array('jquery'), null, false);
+	wp_enqueue_script('jqNoConflict');
+	wp_register_script("jquery-ui", "{$scheme}ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js", array('jquery', 'jqNoConflict'), '1.8.23', true);
 	wp_enqueue_script('jquery-ui');
 
 	wp_register_script("jquery_tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jquery-ui'), '1.6.0', true);
