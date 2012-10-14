@@ -61,7 +61,9 @@ add_action('admin_enqueue_scripts',function(){
 
 	wp_register_script("jquery-tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jquery-pospi'), '1.6.0', true);
 	wp_enqueue_script("jquery-tokeninput");
-	wp_register_script('formio', plugins_url('formio/formio.js', __FILE__), array('jquery-tokeninput'), null, true);
+	wp_register_script("jquery-sortable", plugins_url('formio/lib/html5sortable/jquery.sortable.js', __FILE__), array('jquery-pospi'), '0.1', true);
+	wp_enqueue_script("jquery-sortable");
+	wp_register_script('formio', plugins_url('formio/formio.js', __FILE__), array('jquery-tokeninput', "jquery-sortable"), null, true);
 	wp_enqueue_script('formio');
 
 	wp_register_script('jcparallax', plugins_url('jcparallax/jcparallax.js', __FILE__), array('jquery-pospi'), null, true);
