@@ -71,8 +71,15 @@
 			});
 		};
 
-		var postForm = metaboxes.closest('form'),
+		var postForm, postBoxes;
+
+		if (metaboxes.get(0).tagName.toLowerCase() == 'form') {
+			postBoxes = metaboxes;
+			postForm = null;
+		} else {
+			postForm = metaboxes.closest('form');
 			postBoxes = postForm.find('.postbox.formio .inside');
+		}
 
 		postBoxes.formio({
 			setupRoutines : {
@@ -142,7 +149,9 @@
 			}
 		});
 
-		postBoxes.formio('setupForm', postForm);
+		if (postForm) {
+			postBoxes.formio('setupForm', postForm);
+		}
 
 		// load parallax preview of image attachments
 		initThumbParallax($('ul.token-input-list li.img div'));
