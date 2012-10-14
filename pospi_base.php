@@ -52,8 +52,6 @@ add_action('admin_enqueue_scripts',function(){
 	// builtin jQuery is too old to work with our scripts, so include our own version
 	wp_register_script("jquery-pospi", "{$scheme}ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js", array(), '1.8.2', false);
 	wp_enqueue_script('jquery-pospi');
-	wp_register_script('jqnc', plugins_url('jquery.noconflict.js', __FILE__), array('jquery-pospi'), null, false);
-	wp_enqueue_script('jqnc');
 	// :NOTE: you can't include two versions of jQuery UI in Wordpress as multiple instances were only fixed in 1.8, and WP currently runs 1.7.something
 	wp_enqueue_script('jquery-ui');
 	wp_enqueue_script('jquery-ui-tabs');
@@ -61,24 +59,27 @@ add_action('admin_enqueue_scripts',function(){
 	wp_enqueue_script('jquery-ui-datepicker');
 	wp_enqueue_script('jquery-ui-button');
 
-	wp_register_script("jquery-tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jqnc'), '1.6.0', true);
+	wp_register_script("jquery-tokeninput", plugins_url('formio/lib/jquery-tokeninput/src/jquery.tokeninput.js', __FILE__), array('jquery-pospi'), '1.6.0', true);
 	wp_enqueue_script("jquery-tokeninput");
 	wp_register_script('formio', plugins_url('formio/formio.js', __FILE__), array('jquery-tokeninput'), null, true);
 	wp_enqueue_script('formio');
 
-	wp_register_script('jcparallax', plugins_url('jcparallax/jcparallax.js', __FILE__), array('jqnc'), null, true);
+	wp_register_script('jcparallax', plugins_url('jcparallax/jcparallax.js', __FILE__), array('jquery-pospi'), null, true);
 	wp_enqueue_script('jcparallax');
-	wp_register_script('jcparallax-t', plugins_url('jcparallax/jcp-transitioninterval.js', __FILE__), array('jqnc', 'jcparallax'), null, true);
+	wp_register_script('jcparallax-t', plugins_url('jcparallax/jcp-transitioninterval.js', __FILE__), array('jquery-pospi', 'jcparallax'), null, true);
 	wp_enqueue_script('jcparallax-t');
-	wp_register_script('jcparallax-a', plugins_url('jcparallax/jcp-animator.js', __FILE__), array('jqnc', 'jcparallax-t'), null, true);
+	wp_register_script('jcparallax-a', plugins_url('jcparallax/jcp-animator.js', __FILE__), array('jquery-pospi', 'jcparallax-t'), null, true);
 	wp_enqueue_script('jcparallax-a');
-	wp_register_script('jcparallax-l', plugins_url('jcparallax/jcp-layer.js', __FILE__), array('jqnc', 'jcparallax-a'), null, true);
+	wp_register_script('jcparallax-l', plugins_url('jcparallax/jcp-layer.js', __FILE__), array('jquery-pospi', 'jcparallax-a'), null, true);
 	wp_enqueue_script('jcparallax-l');
-	wp_register_script('jcparallax-vp', plugins_url('jcparallax/jcp-viewport.js', __FILE__), array('jqnc', 'jcparallax-l'), null, true);
+	wp_register_script('jcparallax-vp', plugins_url('jcparallax/jcp-viewport.js', __FILE__), array('jquery-pospi', 'jcparallax-l'), null, true);
 	wp_enqueue_script('jcparallax-vp');
 
 	wp_register_script('pospi-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio'), null, true);
 	wp_enqueue_script('pospi-admin-js');
+
+	wp_register_script('jqnc-pospi', plugins_url('jquery.noconflict.js', __FILE__), array('pospi-admin-js'), null, false);
+	wp_enqueue_script('jqnc-pospi');
 });
 
 // Custom Css
