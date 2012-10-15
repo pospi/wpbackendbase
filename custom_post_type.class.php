@@ -1202,7 +1202,7 @@ class Custom_Post_Type
 		}
 
 		// add subfields for group inputs
-		else if (FormIO::fieldIsInstanceOf($type, 'group')) {
+		else if (FormIO::fieldIsInstanceOf($type, 'group') && !FormIO::fieldIsInstanceOf($type, 'repeater')) {
 			if (isset($options['fields'])) {
 				foreach ($options['fields'] as $name => $f) {
 					if (is_array($f)) {
@@ -1221,7 +1221,7 @@ class Custom_Post_Type
 		// set the field type for repeater inputs
 		else if (FormIO::fieldIsInstanceOf($type, 'repeater')) {
 			$field->setRepeaterType($options['fieldtype']);
-			unset($options['repeater']);
+			unset($options['fieldtype']);
 		}
 
 		// set post type and query options for post type fields
