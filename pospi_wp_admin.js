@@ -72,86 +72,92 @@
 			});
 		};
 
-		var postForm, postBoxes;
+		function initPostBoxes(metaboxes) {
+			var postForm, postBoxes;
 
-		if (metaboxes.get(0).tagName.toLowerCase() == 'form') {
-			postBoxes = metaboxes;
-			postForm = null;
-		} else {
-			postForm = metaboxes.closest('form');
-			postBoxes = postForm.find('.postbox.formio .inside');
+			if (metaboxes.get(0).tagName.toLowerCase() == 'form') {
+				postBoxes = metaboxes;
+				postForm = null;
+			} else {
+				postForm = metaboxes.closest('form');
+				postBoxes = postForm.find('.postbox.formio .inside');
+			}
+
+			postBoxes.formio({
+				setupRoutines : {
+					// custom (or builtin) post type inputs
+					"[data-fio-type='posttype_attachment']" : function(el) {
+						FormIO.prototype.initAutoCompleteField.call(this, el, {
+							preventDuplicates : true,
+							resultsFormatter : function(item) {
+								return "<li>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></li>";
+							},
+							tokenFormatter : function(item) {
+								return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></p></li>";
+							}
+						});
+					},
+					"[data-fio-type='posttype_attachment_image']" : function(el) {
+						FormIO.prototype.initAutoCompleteField.call(this, el, {
+							preventDuplicates : true,
+							resultsFormatter : function(item) {
+								return "<li class=\"img\"><img src=\"" + item.thumbUrl + "\" />" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></li>";
+							},
+							tokenFormatter : function(item) {
+								return "<li class=\"img\"><div><img src=\"" + item.thumbUrl + "\" /></div><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></p></li>";
+							},
+							// refresh or create parallax image input viewports when added to the input list
+							onAdd : function(item) {
+								var that = this;
+								setTimeout(function() {
+									that.prev('.token-input-list').find('div').each(function(i, imgVp) {
+										var vp;
+										if (vp = $(imgVp).data('jcparallax-viewport')) {
+											vp.refreshCoords();
+										} else {
+											initThumbParallax($(imgVp));
+										}
+									});
+								}, 100);
+							}
+						});
+					},
+					"[data-fio-type='posttype_link']" : function(el) {
+						FormIO.prototype.initAutoCompleteField.call(this, el, {
+							preventDuplicates : true,
+							resultsFormatter : function(item) {
+								return "<li>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.linkUrl + "\">open</a>)</sub></li>";
+							},
+							tokenFormatter : function(item) {
+								return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.linkUrl + "\">open</a>)</sub></p></li>";
+							}
+						});
+					},
+					"[data-fio-type='posttype_user']" : function(el) {
+						FormIO.prototype.initAutoCompleteField.call(this, el, {
+							preventDuplicates : true,
+							resultsFormatter : function(item) {
+								return "<li>" + item.name + " &lt;" + item.emailAddr + "&gt; <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a>)</sub></li>";
+							},
+							tokenFormatter : function(item) {
+								return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a>)</sub></p></li>";
+							}
+						});
+					},
+
+					// additional useful inputs
+					"[data-fio-type='facebook_user']" : initUrlInput,
+					"[data-fio-type='twitter_user']" : initUrlInput
+				}
+			});
+
+			if (postForm) {
+				postBoxes.formio('setupForm', postForm);
+			}
 		}
 
-		postBoxes.formio({
-			setupRoutines : {
-				// custom (or builtin) post type inputs
-				"[data-fio-type='posttype_attachment']" : function(el) {
-					FormIO.prototype.initAutoCompleteField.call(this, el, {
-						preventDuplicates : true,
-						resultsFormatter : function(item) {
-							return "<li>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></li>";
-						},
-						tokenFormatter : function(item) {
-							return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></p></li>";
-						}
-					});
-				},
-				"[data-fio-type='posttype_attachment_image']" : function(el) {
-					FormIO.prototype.initAutoCompleteField.call(this, el, {
-						preventDuplicates : true,
-						resultsFormatter : function(item) {
-							return "<li class=\"img\"><img src=\"" + item.thumbUrl + "\" />" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></li>";
-						},
-						tokenFormatter : function(item) {
-							return "<li class=\"img\"><div><img src=\"" + item.thumbUrl + "\" /></div><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.viewUrl + "\">view</a>)</sub></p></li>";
-						},
-						// refresh or create parallax image input viewports when added to the input list
-						onAdd : function(item) {
-							var that = this;
-							setTimeout(function() {
-								that.prev('.token-input-list').find('div').each(function(i, imgVp) {
-									var vp;
-									if (vp = $(imgVp).data('jcparallax-viewport')) {
-										vp.refreshCoords();
-									} else {
-										initThumbParallax($(imgVp));
-									}
-								});
-							}, 100);
-						}
-					});
-				},
-				"[data-fio-type='posttype_link']" : function(el) {
-					FormIO.prototype.initAutoCompleteField.call(this, el, {
-						preventDuplicates : true,
-						resultsFormatter : function(item) {
-							return "<li>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.linkUrl + "\">open</a>)</sub></li>";
-						},
-						tokenFormatter : function(item) {
-							return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a> | <a target=\"_blank\" href=\"" + item.linkUrl + "\">open</a>)</sub></p></li>";
-						}
-					});
-				},
-				"[data-fio-type='posttype_user']" : function(el) {
-					FormIO.prototype.initAutoCompleteField.call(this, el, {
-						preventDuplicates : true,
-						resultsFormatter : function(item) {
-							return "<li>" + item.name + " &lt;" + item.emailAddr + "&gt; <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a>)</sub></li>";
-						},
-						tokenFormatter : function(item) {
-							return "<li><p>" + item.name + " <sub>(<a target=\"_blank\" href=\"" + item.editUrl + "\">edit</a>)</sub></p></li>";
-						}
-					});
-				},
-
-				// additional useful inputs
-				"[data-fio-type='facebook_user']" : initUrlInput,
-				"[data-fio-type='twitter_user']" : initUrlInput
-			}
-		});
-
-		if (postForm) {
-			postBoxes.formio('setupForm', postForm);
+		if (metaboxes.get(0)) {
+			initPostBoxes();
 		}
 
 		// load parallax preview of image attachments
