@@ -164,3 +164,8 @@ li.token-input-token.img .token-input-delete-token {
 .commit .date { color : #008000; }
 .commit .hash { color : #800000; }
 .commit .author { color : #000080; font-family: sans-serif; }
+
+/* :SHONK: fix issue with autocomplete positioning in admin section */
+body.wp-admin div.token-input-dropdown {
+	top: 550px;
+}
