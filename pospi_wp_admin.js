@@ -157,7 +157,7 @@
 		}
 
 		if (metaboxes.get(0)) {
-			initPostBoxes();
+			initPostBoxes(metaboxes);
 		}
 
 		// load parallax preview of image attachments
