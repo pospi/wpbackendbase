@@ -1,6 +1,6 @@
 [submodule "formio"]
 	path = formio
-	url = git@github.com:pospi/formio.git
+	url = git://github.com/pospi/formio.git
 [submodule "jcparallax"]
 	path = jcparallax
-	url = git@github.com:pospi/jcparallax.git
+	url = git://github.com/pospi/jcparallax.git
