@@ -23,6 +23,8 @@ class Custom_Post_Type
 
 	public $post_type_name;
 	public $post_type_name_plural;
+	public $post_type_label;
+	public $post_type_label_plural;
 	public $post_type_args;
 	public $post_type_superclass;
 
@@ -53,8 +55,11 @@ class Custom_Post_Type
 		if (is_array($name)) {
 			$this->post_type_name		= self::get_field_id_name($name[0]);
 			$this->post_type_name_plural = self::get_field_id_name($name[1]);
+			$this->post_type_label = $name[0];
+			$this->post_type_label_plural = $name[1];
 		} else {
 			$this->post_type_name		= self::get_field_id_name($name);
+			$this->post_type_label = $name;
 		}
 		$this->post_type_args = $args;
 
@@ -1301,9 +1306,9 @@ class Custom_Post_Type
 
 	public function get_friendly_name($plural = false)
 	{
-		$name = self::get_field_friendly_name($this->post_type_name);
+		$name = $this->post_type_label;
 		if ($plural) {
-			return self::get_field_friendly_name(isset($this->post_type_name_plural) ? $this->post_type_name_plural : $name . 's');
+			return isset($this->post_type_label_plural) ? $this->post_type_label_plural : ($name . 's');
 		}
 		return $name;
 	}
