@@ -167,7 +167,15 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 			$form = $postType->formHandlers[$formId];
 		}
 
+		if (!$form) {
+			return;
+		}
+
 		$field = $form->getField($fieldKey);
+
+		if (!$field) {
+			return;
+		}
 
 		// run field query & output it
 		header('Content-type: application/json');
