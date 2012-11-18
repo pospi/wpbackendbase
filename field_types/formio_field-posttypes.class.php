@@ -139,7 +139,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 
 	protected function updateFrontendAutocompleteUrl($formSlug, $fieldID)
 	{
-		$this->setAutocompleteUrl(admin_url("admin-ajax.php?action=" . preg_replace('/^wp_ajax_/', '', self::AJAX_HOOK_NAME_FRONTEND) . "&fio_form={$formSlug}&fio_field={$fieldID}"));
+		$this->setAutocompleteUrl(admin_url("admin-ajax.php?action=" . preg_replace('/^wp_ajax_nopriv_/', '', self::AJAX_HOOK_NAME_FRONTEND) . "&fio_form={$formSlug}&fio_field={$fieldID}"));
 	}
 
 	//--------------------------------------------------------------------------
