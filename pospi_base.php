@@ -42,7 +42,7 @@ require_once(POSPI_PLUGIN_BASE . "/admin_menu.class.php");	// menu builders
 require_once(POSPI_PLUGIN_BASE . "/admin_ui.class.php");	// interface builders & custom page handlers
 
 if (is_admin()) {
-	add_action(FormIOField_Posttypes::AJAX_HOOK_NAME, 'FormIOField_Posttypes::__responseHandler');
+	add_action(FormIOField_Posttypes::AJAX_HOOK_NAME, array('FormIOField_Posttypes', '__responseHandler'));
 }
 
 // Custom Javascript
