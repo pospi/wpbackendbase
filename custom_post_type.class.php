@@ -942,14 +942,11 @@ class Custom_Post_Type
 				continue;
 			}
 
-			// merge validated data from formIO instance back onto metadata
+			// merge validated data from formIO subinstance back onto metadata
 			$validData = $inputHandler->getData();
 
 			$metaData = array();
 			foreach ($validData as $k => $v) {
-				if (!isset($v)) {
-					continue;	// prevent overwriting values with NULLs - only empty strings indicate resetting a value
-				}
 				$metaData[preg_replace('/^' . self::META_POST_KEY . '\[(.*)\]$/', '$1', $k)] = $v;
 			}
 			$metaFields = array_merge($metaFields, $metaData);
@@ -959,15 +956,13 @@ class Custom_Post_Type
 				$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
 
 				if ($this->post_type_name != 'user') {
-					if (!isset($metaFields[$field_id_name])) {
-					} else if ($metaFields[$field_id_name] === '') {
+					if (!isset($metaFields[$field_id_name]) || $metaFields[$field_id_name] === '') {
 						delete_post_meta($postId, $field_id_name);
 					} else {
 						update_post_meta($postId, $field_id_name, $metaFields[$field_id_name]);
 					}
 				} else {
-					if (!isset($metaFields[$field_id_name])) {
-					} else if ($metaFields[$field_id_name] === '') {
+					if (!isset($metaFields[$field_id_name]) || $metaFields[$field_id_name] === '') {
 						delete_user_meta($postId, $field_id_name);
 					} else {
 						update_user_meta($postId, $field_id_name, $metaFields[$field_id_name]);
