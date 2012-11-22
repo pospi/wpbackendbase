@@ -81,7 +81,7 @@ class Custom_Post_Type
 
 		// override some values when managing user metadata
 		if ($this->post_type_name == 'user') {
-			$this->saveHooks = array('profile_update', 'user_register', 'edit_user_profile_update');
+			$this->saveHooks = array('profile_update', 'user_register');
 
 			// also bind an action for adding an input to the user registration page.
 			// :SHONK: The only place it can be done is in the form tag - hope to god nobody else is depending on this hack!!
