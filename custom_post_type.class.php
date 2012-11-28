@@ -1319,7 +1319,7 @@ class Custom_Post_Type
 		// Restore octets.
 		$title = preg_replace('|---([a-fA-F0-9][a-fA-F0-9])---|', '%$1', $title);
 
-		if (seems_utf8($title)) {
+		if (function_exists('seems_utf8') && seems_utf8($title)) {
 			if (function_exists('mb_strtolower')) {
 				$title = mb_strtolower($title, 'UTF-8');
 			}
