@@ -773,7 +773,7 @@ class Custom_Post_Type
 			// ORDERING ACTIONS
 
 			// check that we're dealing with an ordering that our post type supports
-			if ($vars['post_type'] != $that->post_type_name || !isset($vars['orderby']) || !isset($that->list_columns[$vars['orderby']]['order'])) {
+			if (!isset($vars['post_type']) || $vars['post_type'] != $that->post_type_name || !isset($vars['orderby']) || !isset($that->list_columns[$vars['orderby']]['order'])) {
 				return $vars;
 			}
 
