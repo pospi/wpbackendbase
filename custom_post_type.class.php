@@ -992,6 +992,9 @@ class Custom_Post_Type
 			if (!$terms) {
 				continue;
 			}
+			if (!is_array($terms)) {
+				$terms = array($terms);
+			}
 			foreach ($terms as &$t) {
 				if (is_numeric($t)) {
 					$t = intval($t);
