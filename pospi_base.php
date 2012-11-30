@@ -49,8 +49,11 @@ if (is_admin()) {
 add_action('admin_enqueue_scripts',function(){
 	$scheme = is_ssl() ? 'https://' : 'http://';
 
+	wp_register_script('jqnc-pospi-pre', plugins_url('jquery.noconflict.pre.js', __FILE__), array(), null, false);
+	wp_enqueue_script('jqnc-pospi-pre');
+
 	// builtin jQuery is too old to work with our scripts, so include our own version
-	wp_register_script("jquery-pospi", "{$scheme}ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js", array(), '1.8.2', false);
+	wp_register_script("jquery-pospi", "{$scheme}ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js", array('jqnc-pospi-pre'), '1.8.2', false);
 	wp_enqueue_script('jquery-pospi');
 	// :NOTE: you can't include two versions of jQuery UI in Wordpress as multiple instances were only fixed in 1.8, and WP currently runs 1.7.something
 	wp_enqueue_script('jquery-ui');
@@ -77,7 +80,7 @@ add_action('admin_enqueue_scripts',function(){
 	wp_register_script('jcparallax-vp', plugins_url('jcparallax/jcp-viewport.js', __FILE__), array('jquery-pospi', 'jcparallax-l'), null, true);
 	wp_enqueue_script('jcparallax-vp');
 
-	wp_register_script('pospi-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio'), null, true);
+	wp_register_script('pospi-admin-js', plugins_url('pospi_wp_admin.js', __FILE__), array('formio', 'jcparallax-vp'), null, true);
 	wp_enqueue_script('pospi-admin-js');
 
 	wp_register_script('jqnc-pospi', plugins_url('jquery.noconflict.js', __FILE__), array('pospi-admin-js'), null, false);
