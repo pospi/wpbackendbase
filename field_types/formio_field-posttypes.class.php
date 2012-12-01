@@ -56,7 +56,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 	 */
 	public function getHumanReadableValue()
 	{
-		$value = $this->getArrayValue();
+		$value = $this->getValue();
 		$ids = $this->forceGetQueryResults();
 
 		$friendlyValsArr = array();
@@ -73,7 +73,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		$vars = parent::getBuilderVars();
 
 		// add value metadata for js UIs to read from
-		$internalValue = $this->getArrayValue();
+		$internalValue = $this->getValue();
 		if ($internalValue) {
 			$visiblePosts = $this->forceGetQueryResults();
 
