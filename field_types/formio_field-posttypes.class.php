@@ -61,8 +61,10 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 
 		$friendlyValsArr = array();
 
-		foreach ($value as $id) {
-			$friendlyValsArr[] = $ids[$id]['name'];
+		if ($value) {
+			foreach ($value as $id) {
+				$friendlyValsArr[] = $ids[$id]['name'];
+			}
 		}
 
 		return implode($this->getAttribute('delimiter', self::DEFAULT_DELIM), $friendlyValsArr);
@@ -90,6 +92,10 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 			$vars['newItemUrl'] = "<a class=\"new\" href=\"{$vars['newItemUrl']}\" target=\"_blank\">New</a>";
 		} else {
 			unset($vars['newItemUrl']);
+		}
+
+		if (is_array($vars['value']) && count($vars['value']) > 1) {
+			$vars['value'] = implode($this->getAttribute('delimiter', self::DEFAULT_DELIM), $vars['value']);
 		}
 
 		return $vars;
