@@ -613,9 +613,9 @@ class Custom_Post_Type
 			// determine the type of posts, since we want to be able to target similar objects as posts...
 			$thisPt = get_post_type($postId);
 			$creatingUser = false;
-			if ($thisPt == 'revision') {
+			if ($thisPt == 'revision' || $thisPt == 'attachment') {
 				$post = get_post($postId);
-				$creatingUser = true;
+				$creatingUser = $thisPt == 'revision';		// :NOTE: users are created with attached posts. 'revision' means the user is new, 'attachment' means they are being updated.
 				$thisPt = get_post_type($post->post_parent);
 			}
 			if ((!$thisPt || $thisPt === 'post') && !empty($_POST[Custom_Post_Type::IS_USER_SAVE_FLAG])) {
