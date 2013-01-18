@@ -143,6 +143,10 @@ abstract class AdminUI
 	 * The list table will come with its items already populated so that the current screen
 	 * can be reset after processing.
 	 *
+	 * The whole "screen reset afterwards" dance is now largely deprecated, but kept for compatibility
+	 * with pre-3.5 Wordpress versions. Later versions allow passing the screen into the ListTable constructor
+	 * and do not access it globally internally anymore.
+	 *
 	 * @param  string $postTypeName post type (or object type if 'user', 'attachment') to get the table object for
 	 * @return array of the list table used to draw those posts at index 0, and the
 	 *               previous screen object at index 1. Wordpress' mess of globals requires that you have the current
@@ -168,19 +172,35 @@ abstract class AdminUI
 		switch ($postTypeName) {
 			case 'attachment':
 				set_current_screen('media');
-				$wp_list_table = new WP_Media_List_Table();	// :IMPORTANT: table must be constructed AFTER screen is set!
+				if (self::is_wp_version('3.5')) {
+					$wp_list_table = new WP_Media_List_Table(array('screen' => 'media'));
+				} else {
+					$wp_list_table = new WP_Media_List_Table();	// :IMPORTANT: table must be constructed AFTER screen is set!
+				}
 				break;
 			case 'user':
 				set_current_screen('users');
-				$wp_list_table = new WP_Users_List_Table();
+				if (self::is_wp_version('3.5')) {
+					$wp_list_table = new WP_Users_List_Table(array('screen' => 'users'));
+				} else {
+					$wp_list_table = new WP_Users_List_Table();
+				}
 				break;
 			case 'page':
 				set_current_screen('pages');
-				$wp_list_table = new WP_Posts_List_Table();
+				if (self::is_wp_version('3.5')) {
+					$wp_list_table = new WP_Posts_List_Table(array('screen' => 'pages'));
+				} else {
+					$wp_list_table = new WP_Posts_List_Table();
+				}
 				break;
 			default:
 				set_current_screen('edit-' . $postTypeName);
-				$wp_list_table = new WP_Posts_List_Table();
+				if (self::is_wp_version('3.5')) {
+					$wp_list_table = new WP_Posts_List_Table(array('screen' => 'edit-' . $postTypeName));
+				} else {
+					$wp_list_table = new WP_Posts_List_Table();
+				}
 				break;
 		}
 		$wp_list_table->prepare_items();
@@ -293,5 +313,12 @@ abstract class AdminUI
 </fieldset>
 <?php
 		}
+	}
+
+	// Check WP versions to manage features
+	public static function is_wp_version($version)
+	{
+		global $wp_version;
+		return version_compare($wp_version, $version, '>=');
 	}
 }
