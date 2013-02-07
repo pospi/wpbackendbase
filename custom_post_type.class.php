@@ -226,19 +226,7 @@ class Custom_Post_Type
 				$labels = array_merge(
 
 					// Default
-					array(
-						'name' 					=> function_exists('_x') ? _x( $plural, 'taxonomy general name' ) : WP_Core::_x( $plural, 'taxonomy general name' ),
-						'singular_name' 		=> function_exists('_x') ? _x( $name, 'taxonomy singular name' ) : WP_Core::_x( $name, 'taxonomy singular name' ),
-					    'search_items' 			=> function_exists('__') ? __( 'Search ' . $plural ) : WP_Core::__( 'Search ' . $plural ),
-					    'all_items' 			=> function_exists('__') ? __( 'All ' . $plural ) : WP_Core::__( 'All ' . $plural ),
-					    'parent_item' 			=> function_exists('__') ? __( 'Parent ' . $name ) : WP_Core::__( 'Parent ' . $name ),
-					    'parent_item_colon' 	=> function_exists('__') ? __( 'Parent ' . $name . ':' ) : WP_Core::__( 'Parent ' . $name . ':' ),
-					    'edit_item' 			=> function_exists('__') ? __( 'Edit ' . $name ) : WP_Core::__( 'Edit ' . $name ),
-					    'update_item' 			=> function_exists('__') ? __( 'Update ' . $name ) : WP_Core::__( 'Update ' . $name ),
-					    'add_new_item' 			=> function_exists('__') ? __( 'Add New ' . $name ) : WP_Core::__( 'Add New ' . $name ),
-					    'new_item_name' 		=> function_exists('__') ? __( 'New ' . $name . ' Name' ) : WP_Core::__( 'New ' . $name . ' Name' ),
-					    'menu_name' 			=> function_exists('__') ? __( $plural ) : WP_Core::__( $plural ),
-					),
+					self::makeTaxonomyLabels($name, $plural),
 
 					// Given labels
 					$taxonomy_labels
@@ -289,6 +277,26 @@ class Custom_Post_Type
 				}
 			}
 		}
+	}
+
+	public static function makeTaxonomyLabels($name, $plural = null)
+	{
+		if (!isset($plural)) {
+			$plural = $name . 's';
+		}
+		return array(
+			'name' 					=> _x( $plural, 'taxonomy general name' ),
+			'singular_name' 		=> _x( $name, 'taxonomy singular name' ),
+		    'search_items' 			=> __( 'Search ' . $plural ),
+		    'all_items' 			=> __( 'All ' . $plural ),
+		    'parent_item' 			=> __( 'Parent ' . $name ),
+		    'parent_item_colon' 	=> __( 'Parent ' . $name . ':' ),
+		    'edit_item' 			=> __( 'Edit ' . $name ),
+		    'update_item' 			=> __( 'Update ' . $name ),
+		    'add_new_item' 			=> __( 'Add New ' . $name ),
+		    'new_item_name' 		=> __( 'New ' . $name . ' Name' ),
+		    'menu_name' 			=> __( $plural ),
+		);
 	}
 
 	/* Attaches meta boxes to the post type */
