@@ -636,7 +636,7 @@ class Custom_Post_Type
 			if ( isset($_POST[Custom_Post_Type::NONCE_FIELD_NAME]) && ! wp_verify_nonce( $_POST[Custom_Post_Type::NONCE_FIELD_NAME], plugin_basename(__FILE__) ) ) return;
 
 			if( $postId && $thisPt == $post_type_name ) {
-				$that->update_post_meta($postId, isset($_POST[Custom_Post_Type::META_POST_KEY]) ? $_POST[Custom_Post_Type::META_POST_KEY] : array());
+				$that->update_post_meta($postId, isset($_POST[Custom_Post_Type::META_POST_KEY]) ? $_POST[Custom_Post_Type::META_POST_KEY] : array(), !isset($_POST[Custom_Post_Type::META_POST_KEY]));
 
 				// clear validation errors when creating users - they aren't supposed to be valid yet!
 				if ($creatingUser && $thisPt == 'user') {
@@ -915,7 +915,7 @@ class Custom_Post_Type
 	 * @param  Array  $rawMetaFields Flat array of metadata keys/values.
 	 *                               Key names are given by lowerase concatenation of the metabox's title and field name with underscores.
 	 */
-	public function update_post_meta($postId, Array $rawMetaFields)
+	public function update_post_meta($postId, Array $rawMetaFields, $skipValidation = false)
 	{
 		$rawMetaFields = $this->prehandlePostMeta($postId, $rawMetaFields);
 		// we force load existing meta fields to be sure that we're getting fresh info - other plugins
@@ -941,7 +941,7 @@ class Custom_Post_Type
 			// bring in the subset of data relevant to this metabox section
 			$inputHandler->importData($rawMetaFields, true);
 
-			if (!$inputHandler->validate()) {
+			if (!$skipValidation && !$inputHandler->validate()) {
 				$that = $this;
 				// store the form's errors in session so that we can pull them back after the redirect
 				if (!isset($_SESSION[self::ERROR_SESSION_STORAGE])) {
@@ -983,7 +983,7 @@ class Custom_Post_Type
 		// save superclass metadata and merge our data on top, if present
 		if ($this->post_type_superclass) {
 			$superType = self::get_post_type($this->post_type_superclass);
-			$superType->update_post_meta($postId, $metaFields);
+			$superType->update_post_meta($postId, $metaFields, $skipValidation);
 		}
 	}
 
