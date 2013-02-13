@@ -62,6 +62,9 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		$friendlyValsArr = array();
 
 		if ($value) {
+			if (!is_array($value)) {
+				$value = array($value);
+			}
 			foreach ($value as $id) {
 				$friendlyValsArr[] = $ids[$id]['name'];
 			}
@@ -77,6 +80,10 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 		// add value metadata for js UIs to read from
 		$internalValue = $this->getValue();
 		if ($internalValue) {
+			if (!is_array($internalValue)) {
+				$internalValue = array($internalValue);
+			}
+
 			$visiblePosts = $this->forceGetQueryResults();
 
 			$extradata = array();
