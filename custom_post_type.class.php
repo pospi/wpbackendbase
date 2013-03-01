@@ -144,7 +144,6 @@ class Custom_Post_Type
 				// 'show_ui' 				=> true,
 				// 'show_in_nav_menus' 	=> true,
 				// 'show_in_menu'		=> true,
-				'menu_position'		=> 15,
 				'query_var'			=> true,
 				'rewrite'			=> true,
 				'supports' 			=> array( 'title', 'editor' ),
