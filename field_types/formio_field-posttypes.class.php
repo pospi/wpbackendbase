@@ -101,7 +101,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 			unset($vars['newItemUrl']);
 		}
 
-		if (is_array($vars['value']) && count($vars['value']) > 1) {
+		if (is_array($vars['value'])) {
 			$vars['value'] = implode($this->getAttribute('delimiter', self::DEFAULT_DELIM), $vars['value']);
 		}
 
