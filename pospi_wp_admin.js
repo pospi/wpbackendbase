@@ -147,6 +147,7 @@
 
 					// additional useful inputs
 					"[data-fio-type='facebook_user']" : initUrlInput,
+					"[data-fio-type='youtube_user']" : initUrlInput,
 					"[data-fio-type='twitter_user']" : initUrlInput
 				}
 			});

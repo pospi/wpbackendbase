@@ -112,7 +112,8 @@ li.token-input-token.img .token-input-delete-token {
 /* styles for custom input types */
 
 .formio .facebook input,
-.formio .twitter input {
+.formio .twitter input,
+.formio .youtube input {
 	width: auto;
 }
 

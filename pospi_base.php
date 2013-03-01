@@ -29,6 +29,7 @@ require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-richedit.class.php")
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-taxonomy.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-facebook_user.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-twitter_user.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-youtube_user.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-displaylink.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-filesize.class.php");
 // custom post data & post type inputs
