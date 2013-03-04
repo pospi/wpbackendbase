@@ -1194,6 +1194,7 @@ class Custom_Post_Type
 		// set the field type for repeater inputs
 		else if (FormIO::fieldIsInstanceOf($type, 'repeater')) {
 			$field->setRepeaterType($options['fieldtype']);
+			$field->setAttribute('reserve_empty_input', false);
 			unset($options['fieldtype']);
 		}
 
