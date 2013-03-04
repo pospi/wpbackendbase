@@ -69,7 +69,7 @@ class Custom_Post_Type
 
 		// Add action to register the post type, if the post type doesnt exist
 		if (function_exists('post_type_exists')) {
-			if( $this->post_type_name != 'user' && ! post_type_exists( $this->post_type_name ) )
+			if( $this->post_type_name != 'user' && $this->post_type_name != 'attachment' && ! post_type_exists( $this->post_type_name ) )
 			{
 				add_action( 'init', array( &$this, 'register_post_type' ) );
 			}
@@ -323,7 +323,7 @@ class Custom_Post_Type
 			$metaboxDrawCb = null;
 
 			// output the metabox for our post type on the admin screen
-			if ($this->post_type_name != 'user' && $this->post_type_name != 'attachment') {
+			if ($this->post_type_name != 'user' && (!self::$LEGACY_ATTACHMENT_EDITOR || (self::$LEGACY_ATTACHMENT_EDITOR && $this->post_type_name != 'attachment'))) {
 
 				// --- STANDARD POST TYPE SCREEN ---
 
@@ -376,7 +376,7 @@ class Custom_Post_Type
 				};
 			} else {
 
-				// --- ATTACHMENT EDITOR ---
+				// --- ATTACHMENT EDITOR FOR PRE-3.5 ---
 
 				$metaboxDrawCb = function($formFields, $post) use ($box_id, $box_title, $that) {
 					// Write a nonce field for some validation
@@ -426,7 +426,7 @@ class Custom_Post_Type
 	public function raw_add_meta_box($box_id, $box_title, $post_type_name, $box_cb, $box_context, $box_priority, $fields, $cbArgs = null)
 	{
 		// output the metabox for our post type on the admin screen
-		if ($this->post_type_name != 'user' && $this->post_type_name != 'attachment') {
+		if ($this->post_type_name != 'user' && (!self::$LEGACY_ATTACHMENT_EDITOR || (self::$LEGACY_ATTACHMENT_EDITOR && $this->post_type_name != 'attachment'))) {
 
 			// --- STANDARD POST TYPE SCREEN ---
 
@@ -463,7 +463,7 @@ class Custom_Post_Type
 			add_action('edit_user_profile', $userUpdateCb);
 		} else {
 
-			// --- ATTACHMENT EDITOR ---
+			// --- ATTACHMENT EDITOR FOR PRE-3.5 ---
 
 			add_filter('attachment_fields_to_edit', function($submittedData, $attach) use ($box_cb, $cbArgs) {
 				if (isset($cbArgs)) {
@@ -1370,5 +1370,16 @@ class Custom_Post_Type
 			return new Custom_Post_Type($name);		// same, for builtin post types
 		}
 		return null;
+	}
+
+	//---------------------------------------------------------------------------------
+	//	Compatibility layer
+	//---------------------------------------------------------------------------------
+
+	private static $LEGACY_ATTACHMENT_EDITOR;
+
+	public static function checkCompat()
+	{
+		self::$LEGACY_ATTACHMENT_EDITOR = !AdminUI::is_wp_version('3.5');
 	}
 }

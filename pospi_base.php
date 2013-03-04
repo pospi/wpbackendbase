@@ -42,6 +42,9 @@ require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-users.class.php");
 require_once(POSPI_PLUGIN_BASE . "/admin_menu.class.php");	// menu builders
 require_once(POSPI_PLUGIN_BASE . "/admin_ui.class.php");	// interface builders & custom page handlers
 
+// Compatibility checks
+Custom_Post_Type::checkCompat();
+
 if (is_admin()) {
 	add_action(FormIOField_Posttypes::AJAX_HOOK_NAME, array('FormIOField_Posttypes', '__responseHandler'));
 }
