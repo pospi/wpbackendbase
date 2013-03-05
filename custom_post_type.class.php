@@ -1168,8 +1168,9 @@ class Custom_Post_Type
 
 		// add field options if this is a multiple input type
 		if (FormIO::fieldIsInstanceOfAny($type, array('dropdown', 'radiogroup', 'checkgroup', 'survey')) && isset($options['values'])) {
-			foreach ($options['values'] as $v) {
-				$field->setOption($v, $v);
+			$useKey = !empty($options['values-assoc']);
+			foreach ($options['values'] as $k => $v) {
+				$field->setOption($useKey ? $k : $v, $v);
 			}
 			unset($options['values']);
 		}
