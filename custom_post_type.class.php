@@ -848,7 +848,12 @@ class Custom_Post_Type
 		foreach( $this->meta_fields as $title => $fields ) {
 			// Loop through all fields
 			foreach( $fields as $label => $type ) {
-				$ourMeta[self::get_field_id_name($title) . '_' . self::get_field_id_name($label)] = true;
+				if (is_array($type) && isset($type[1]['meta_field_name_override'])) {
+					$fldName = $type[1]['meta_field_name_override'];
+				} else {
+					$fldName = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
+				}
+				$ourMeta[$fldName] = true;
 			}
 		}
 
@@ -927,7 +932,11 @@ class Custom_Post_Type
 
 			// Loop through all fields
 			foreach ($fields as $label => $type) {
-				$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
+				if (is_array($type) && isset($type[1]['meta_field_name_override'])) {
+					$field_id_name = $type[1]['meta_field_name_override'];
+				} else {
+					$field_id_name = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
+				}
 
 				if ($this->post_type_name != 'user') {
 					if (!isset($metaFields[$field_id_name]) || $metaFields[$field_id_name] === '') {
@@ -987,7 +996,11 @@ class Custom_Post_Type
 
 		foreach ($this->meta_fields as $title => $boxFields) {
 			foreach ($boxFields as $label => $type) {
-				$fields[] = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
+				if (is_array($type) && isset($type[1]['meta_field_name_override'])) {
+					$fields[] = $type[1]['meta_field_name_override'];
+				} else {
+					$fields[] = self::get_field_id_name($title) . '_' . self::get_field_id_name($label);
+				}
 			}
 		}
 
@@ -1090,7 +1103,7 @@ class Custom_Post_Type
 					}
 
 					$metaFieldId = self::get_field_id_name($label);
-					$metaKeyName = $metaBoxId . '_' . $metaFieldId;
+					$metaKeyName = isset($options['meta_field_name_override']) ? $options['meta_field_name_override'] : $metaBoxId . '_' . $metaFieldId;
 					$fieldName = self::META_POST_KEY . '[' . $metaKeyName . ']';
 
 					$form->addField($fieldName, $label, $type);
