@@ -840,7 +840,13 @@ class Custom_Post_Type
 	public function get_post_meta($postId)
 	{
 		// get all metadata for this post
-		$meta = $this->post_type_name != 'user' ? get_post_custom( $postId ) : get_user_meta($postId);
+		if ($this->post_type_name == 'user') {
+			$meta = get_user_meta($postId);
+		} else if ($parentId = wp_is_post_revision($postId)) {
+			$meta = get_post_custom($parentId);
+		} else {
+			$meta = get_post_custom($postId);
+		}
 
 		$ourMeta = array();
 
