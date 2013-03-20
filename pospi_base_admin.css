@@ -122,6 +122,11 @@ li.token-input-token.img .token-input-delete-token {
 	width: auto;
 }
 
+/* we only want the image button, no custom ones */
+.formio .richedit .wp-media-buttons a {	display: none; }
+.formio .richedit .wp-media-buttons a.insert-media { display: inline-block; }
+.formio .richedit .wp-editor-wrap { display: inline-block; width: 67%; }
+
 /*-----------------------------------------------------------------------*/
 /* extra admin notification icon classes */
 
