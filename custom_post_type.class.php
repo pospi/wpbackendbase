@@ -1169,7 +1169,16 @@ class Custom_Post_Type
 		// set any dependencies present
 		if (isset($options['dependencies'])) {
 			foreach ($options['dependencies'] as $expectedVal => $visibleField) {
-				$field->addDependency($expectedVal, $visibleField);
+				// duplicate all dependencies with the 'real' underlying field name so that data is correctly cleared when hidden by a dependency
+				if (!is_array($visibleField)) {
+					$visibleField = array($visibleField);
+				}
+				$visibleFields = array();
+				foreach ($visibleField as $f) {
+					$visibleFields[] = $f;
+					$visibleFields[] = self::META_POST_KEY . '[' . $f . ']';
+				}
+				$field->addDependency($expectedVal, $visibleFields);
 			}
 			unset($options['dependencies']);
 		}
