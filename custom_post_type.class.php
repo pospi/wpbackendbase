@@ -902,8 +902,9 @@ class Custom_Post_Type
 		$this->init_form_handlers($rawMetaFields, $postId, true);
 
 		// index our raw metadata by field names used within the form
-		foreach ($rawMetaFields as &$f) {
-			$f = self::META_POST_KEY . '[' . $f . ']';
+		$indexedMetaFields = array();
+		foreach ($rawMetaFields as $i => $f) {
+			$indexedMetaFields[self::META_POST_KEY . '[' . $i . ']'] = $f;
 		}
 
 		// Loop through each meta box
@@ -915,7 +916,7 @@ class Custom_Post_Type
 			$inputHandler->submitted = true;
 
 			// bring in the subset of data relevant to this metabox section
-			$inputHandler->importData($rawMetaFields, true);
+			$inputHandler->importData($indexedMetaFields, true);
 
 			if (!$skipValidation && !$inputHandler->validate()) {
 				$that = $this;
