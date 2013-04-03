@@ -124,6 +124,7 @@ li.token-input-token.img .token-input-delete-token {
 
 /* make richEdit inputs the right width */
 .formio .richedit .wp-editor-wrap { display: inline-block; width: 67%; }
+.formio .richedit .wp-editor-container { background: #FFF; }
 
 /*-----------------------------------------------------------------------*/
 /* extra admin notification icon classes */
