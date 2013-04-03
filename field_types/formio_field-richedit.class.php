@@ -24,9 +24,16 @@ class FormIOField_Richedit extends FormIOField_Text
 	{
 		$vars = parent::getBuilderVars();
 
-		// user output buffering to capture the editor content. sorry compatibilty :/
+		// defaults for the editor inputs. Any parameters to wp_editor() can be passed in as field attributes.
+		$editorDefaults = array(
+			'textarea_name' => $this->getName(),
+			'media_buttons' => false,
+			'teeny' => true,
+		);
+
+		// use output buffering to capture the editor content. sorry compatibilty :/
 		ob_start();
-		wp_editor($this->value, $this->getFieldId(), array('textarea_name' => $this->getName()));
+		wp_editor($this->value, $this->getFieldId(), array_merge($editorDefaults, $this->getAttributes()));
 		$vars['editor'] = ob_get_clean();
 
 		return $vars;
