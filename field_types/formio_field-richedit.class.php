@@ -20,6 +20,12 @@ class FormIOField_Richedit extends FormIOField_Text
 		parent::__construct($form, $name, $displayText, $defaultValue);
 	}
 
+	public function setValue($val)
+	{
+		$val = stripcslashes($val);
+		parent::setValue($val);
+	}
+
 	protected function getBuilderVars()
 	{
 		$vars = parent::getBuilderVars();
