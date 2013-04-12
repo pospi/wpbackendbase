@@ -246,6 +246,14 @@
 		uploader.bind('FilesAdded', handleUpload);
 		uploader.bind('UploadProgress', handleUploadProgress);
 		uploader.bind('FileUploaded', handleUploadComplete);
+
+		// handle sorting
+		el.find('ul.uploaded-images').sortable({
+			items : 'li'
+		});
+
+		// bind an event to manage removals
+
 	}
 
 	// remainder logic heavily inspired by metabox plugin: http://wordpress.org/extend/plugins/meta-box/
