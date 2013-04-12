@@ -1264,6 +1264,12 @@ class Custom_Post_Type
 			$field->setActivePost($post);
 		}
 
+		// pass the metabox and field name to plupload fields
+		else if (FormIO::fieldIsInstanceOf($type, 'richupload')) {
+			$field->setAttribute('metabox', $metaBoxId);
+			$field->setAttribute('posttype', $postTypeName);
+		}
+
 		// handle extradata parameter callback for autocomplete fields
 		if (isset($options['extradata']) && is_callable($options['extradata'])) {
 			$options['extradata'] = call_user_func($options['extradata'], $post, $meta);

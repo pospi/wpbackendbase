@@ -26,6 +26,7 @@ define('POSPI_PLUGIN_BASE', dirname(__FILE__));
 require_once(POSPI_PLUGIN_BASE . "/formio/form_io.class.php");
 // some additional useful form inputs
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-richedit.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-richupload.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-taxonomy.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-facebook_user.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-twitter_user.class.php");
@@ -47,6 +48,7 @@ Custom_Post_Type::checkCompat();
 
 if (is_admin()) {
 	add_action(FormIOField_Posttypes::AJAX_HOOK_NAME, array('FormIOField_Posttypes', '__responseHandler'));
+	add_action(FormIOField_Richupload::AJAX_HOOK_NAME, array('FormIOField_Richupload', '__uploadHandler'));
 }
 
 // Custom Javascript
@@ -70,6 +72,10 @@ add_action('admin_enqueue_scripts',function(){
 
 	$scheme = is_ssl() ? 'https://' : 'http://';
 
+	// core WP script includes
+	wp_enqueue_script('plupload-all');
+
+	// begin custom script jQuery sandbox
 	wp_register_script('jqnc-pospi-pre', plugins_url('jquery.noconflict.pre.js', __FILE__), $coreJqueryScripts, null, false);
 	wp_enqueue_script('jqnc-pospi-pre');
 

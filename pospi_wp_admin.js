@@ -144,6 +144,9 @@
 							}
 						});
 					},
+					"[data-fio-type='plupload']" : function(el) {
+						initUploaderControl(el);
+					},
 
 					// additional useful inputs
 					"[data-fio-type='facebook_user']" : initUrlInput,
@@ -196,7 +199,8 @@
 	// helpers
 	//--------------------------------------------------------------------------
 
-	function initThumbParallax(els) {
+	function initThumbParallax(els)
+	{
 		els.jcparallax({
 			layerSelector: 'img',
 			// y-axis movement only
@@ -208,6 +212,120 @@
 			inputEvent: 'mousemove',
 			animHandler: 'position'
 		});
+	}
+
+	//--------------------------------------------------------------------------
+	// binding for Wordpress plUpload inputs
+	//--------------------------------------------------------------------------
+
+	function initUploaderControl(el)
+	{
+		// override uploader defaults for this particular field
+		var uploader,
+			uploaderId = el.attr('id'),
+			nonce = $( '#nonce-upload-images_' + uploaderId ).val(),
+			uploaderConfig = $.extend({}, pbase_plupload_config, {
+				container    : uploaderId + '-container',
+				browse_button: uploaderId + '-browse-button',
+				drop_element : uploaderId + '-dragdrop'
+			});
+
+		// Add POST variables to send with the uploader requests
+		uploaderConfig['multipart_params'] = {
+			action  : 'pbase_upload_input_handle',
+			pt: el.data('posttype'),
+			form: el.data('metabox'),
+			field: el.data('field'),
+			post_id : $('#post_ID').val(),
+			_wpnonce: nonce,
+			force_delete: el.data('force-delete') || 0	// special attribute to control image removal behaviour (unassign vs delete)
+		};
+
+		// Create new uploader
+		uploader = new plupload.Uploader(uploaderConfig);
+		uploader.init();
+		uploader.bind('FilesAdded', handleUpload);
+		uploader.bind('UploadProgress', handleUploadProgress);
+		uploader.bind('FileUploaded', handleUploadComplete);
+	}
+
+	// remainder logic heavily inspired by metabox plugin: http://wordpress.org/extend/plugins/meta-box/
+	// and this tutorial: http://www.krishnakantsharma.com/2012/01/image-uploads-on-wordpress-admin-screens-using-jquery-and-new-plupload/
+	function handleUpload(up, files)
+	{
+		var uploadContainer = $('#' + up.settings.container),
+			maxUploads = uploadContainer.data('max-uploads'),
+			uploaded = $('ul.uploaded-images', uploadContainer).children().length,
+			msg = 'You may only upload ' + maxUploads + ' file';
+
+		if (maxUploads > 1) {
+			msg += 's';
+		}
+
+		// Remove files from queue if exceed max file uploads
+		if ( ( uploaded + files.length ) > maxUploads )
+		{
+			for (var i = files.length; i--;)
+			{
+				up.removeFile(files[i]);
+			}
+			alert(msg);		// :TODO: nicer error message
+			return false;
+		}
+
+		// Hide drag & drop section if reach max file uploads, show it otherwise
+		if (( uploaded + files.length ) == maxUploads) {
+			uploadContainer.find('.drag-drop-inside').hide();
+		} else {
+			uploadContainer.find('.drag-drop-inside').show();
+		}
+
+		var max = parseInt(up.settings.max_file_size, 10);
+
+		// handle the actual uploading
+		plupload.each(files, function(file) {
+			createUploadLoader(up, file);
+			if (file.size >= max) {
+				handleUploadError(file, 'File too large');
+			}
+		});
+
+		up.refresh();
+		up.start();
+	}
+
+	function handleUploadProgress(up, file)
+	{
+		$('li#' + file.id + " .progress-bar")
+			.width(file.percent + "%")
+			.find('span').html(plupload.formatSize(parseInt(file.size * file.percent / 100)));
+	}
+
+	function handleUploadComplete(up, file, response)
+	{
+		if (!response.response || response.status != 200) {
+			handleUploadError(file, 'Error processing upload');
+			return;
+		}
+
+		$('li#' + file.id).replaceWith(response.response);
+	}
+
+	function createUploadLoader(up, file)
+	{
+		// :TODO: could use local file API to read in pre-upload here...
+		var uploadList = $('#' + up.settings.container + ' ul.uploaded-images');
+		uploadList.append( "<li id=\"" + file.id + "\" class=\"loading\"><div class='progress-bar'>Uploading (<span>0%</span>)</div></li>" );
+	}
+
+	function handleUploadError(file, msg)
+	{
+		$('li#' + file.id)
+			.removeClass('loading').addClass('error').html(msg)
+			.delay(1600)
+			.fadeOut('slow', function() {
+				$(this).remove();
+			});
 	}
 
 })(jQuery);

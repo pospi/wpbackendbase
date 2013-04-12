@@ -126,6 +126,78 @@ li.token-input-token.img .token-input-delete-token {
 .formio .richedit .wp-editor-wrap { display: inline-block; width: 67%; vertical-align: top; }
 .formio .richedit .wp-editor-container { background: #FFF; }
 
+/* plupload input styles */
+.formio .richupload .plupload-upload-ui { display: inline-block; width: 67%; vertical-align: top; }
+.formio .drag-drop-area .drag-drop-inside p {
+    display: block;
+}
+.formio div.drag-drop-area {
+	border: 4px dashed #ddd;
+}
+.formio div.drag-drop-inside {
+	margin: 40px auto;
+	width: 250px;
+}
+.formio div.drag-drop-inside p {
+	color: #AAAAAA;
+	text-align: center;
+}
+.formio div.drag-drop-area ul { margin: 0; padding: 10px; }
+.formio div.drag-drop-area li {
+	margin: 0 10px 10px 0;
+	float: left;
+	width: 150px;
+	height: 150px;
+	text-align: center;
+	cursor: move;
+	position: relative;
+	overflow: hidden;
+	border: 2px solid #999;
+}
+.formio div.drag-drop-area img {
+	width: 150px;
+	height: 150px;
+}
+.formio div.drag-drop-area li:hover .img-controls {
+	bottom: 0;
+}
+.formio div.drag-drop-area .img-controls {
+	transition: bottom 0.2s;
+	-moz-transition: bottom 0.2s;
+	-webkit-transition: bottom 0.2s;
+	position: absolute;
+	height: 2em;
+	bottom: -2em; right: 0;
+	background: #000;
+}
+.formio div.drag-drop-area .img-controls a {
+	width: 50%; padding: 0.5em;
+	font-weight: bold;
+	color: white;
+	text-decoration: none;
+}
+.formio div.drag-drop-area .img-controls a.img-del {
+	color: #F00;
+	font-size: 1.5em;
+	position: relative;
+	top: 0.1em;
+}
+.formio div.drag-drop-area .progress-bar {
+	position: absolute;
+	background: #8E8;
+	color: #444;
+	width: 0;
+	height: 100%;
+	line-height: 150px;
+}
+.formio div.drag-drop-area .progress-bar span {
+	white-space: nowrap;
+}
+.formio div.drag-drop-area li.error {
+	background: #E88;
+	line-height: 1.2em;
+}
+
 /*-----------------------------------------------------------------------*/
 /* extra admin notification icon classes */
 
