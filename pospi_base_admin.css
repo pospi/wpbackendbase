@@ -206,6 +206,27 @@ li.token-input-token.img .token-input-delete-token {
 	line-height: 1.2em;
 }
 
+/* named link input with helper popup */
+.formio div.row.external-link .row {
+	float: left; clear: none;
+}
+.formio div.row.external-link .name {
+	width: 33%;
+	margin-right: 2%;
+}
+.formio div.row.external-link .href {
+	width: 65%;
+}
+.formio div.row.external-link .target {
+	width: 65%;
+	margin-top: -0.8em;
+}
+.formio div.row.external-link .wp-link-dlg-open {
+	width: 33%;
+	margin-right: 2%;
+	margin-top: -0.8em;
+}
+
 /*-----------------------------------------------------------------------*/
 /* extra admin notification icon classes */
 

@@ -33,6 +33,7 @@ require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-twitter_user.class.p
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-youtube_user.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-displaylink.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-filesize.class.php");
+require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-external_link.class.php");
 // custom post data & post type inputs
 require_once(POSPI_PLUGIN_BASE . "/custom_post_type.class.php");
 require_once(POSPI_PLUGIN_BASE . "/field_types/formio_field-posttypes.class.php");
@@ -74,6 +75,7 @@ add_action('admin_enqueue_scripts',function(){
 
 	// core WP script includes
 	wp_enqueue_script('plupload-all');
+	wp_enqueue_script('wp-link');
 
 	// begin custom script jQuery sandbox
 	wp_register_script('jqnc-pospi-pre', plugins_url('jquery.noconflict.pre.js', __FILE__), $coreJqueryScripts, null, false);

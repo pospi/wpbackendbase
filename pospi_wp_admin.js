@@ -46,7 +46,7 @@
 					that = this;
 				$.each(this.failedValidators, function(field, validator) {
 					var el = $('#' + field);
-					messages[that.getReadableFieldName(el) + " failed validation."] = true;		// :TODO: validator messages
+					messages[that.getReadableFieldName(el) + " failed validation."] = true;     // :TODO: validator messages
 				});
 				$.each(messages, function(msg, v) {
 					messageStr += "<div class=\"error formio-notifications\"><p>" + msg + "</p></div>";
@@ -146,6 +146,10 @@
 					},
 					"[data-fio-type='plupload']" : function(el) {
 						initUploaderControl(el);
+					},
+
+					".row.external-link" : function(el) {
+						bindLinkDialog(el);
 					},
 
 					// additional useful inputs
@@ -281,7 +285,7 @@
 			{
 				up.removeFile(files[i]);
 			}
-			alert(msg);		// :TODO: nicer error message
+			alert(msg);     // :TODO: nicer error message
 			return false;
 		}
 
@@ -340,7 +344,7 @@
 	function handleUploadError(up, file, msg)
 	{
 		var uploadContainer = $('#' + up.settings.container);
-		uploadContainer.find('.drag-drop-inside').show();	// we can assume an error means the ability to upload has been restored
+		uploadContainer.find('.drag-drop-inside').show();   // we can assume an error means the ability to upload has been restored
 
 		$('li#' + file.id)
 			.removeClass('loading').addClass('error').html('<div class="details">'+msg+'</div>')
@@ -348,6 +352,64 @@
 			.fadeOut('slow', function() {
 				$(this).remove();
 			});
+	}
+
+	//--------------------------------------------------------------------------
+	// totally shonky binding for Wordpress link manager
+	//--------------------------------------------------------------------------
+
+	var linkManagerRebound = false,
+		linkDlgTarget = null,
+		oldTinyMCEpopup, oldActiveEditor;
+
+	function bindLinkDialog(el)
+	{
+		el.on('click', '.wp-link-dlg-open input', function(e) {
+			linkDlgTarget = $(this).closest('div.external-link');
+
+			oldActiveEditor = wpActiveEditor;
+			oldTinyMCEpopup = tinyMCEPopup;
+			wpActiveEditor = true;
+			tinyMCEPopup = false;
+
+			wpLink.open();
+			wpLink.textarea = $();  // a focus will scroll us confusingly...
+
+			$('#link-title-field').val(linkDlgTarget.find('.row.name :input').val());
+			$('#url-field').val(linkDlgTarget.find('.row.href :input').val());
+			if (linkDlgTarget.find('.row.target :checked').length) {
+				$('#link-target-checkbox').attr('checked', 'checked');
+			} else {
+				$('#link-target-checkbox').removeAttr('checked');
+			}
+		});
+
+		$('body').on('click', '#wp-link-submit', function(event) {
+			if (!linkDlgTarget) {
+				return;
+			}
+
+			var linkAtts = wpLink.getAttrs();
+
+			linkDlgTarget.find('.row.href :input').val(linkAtts.href);
+			linkDlgTarget.find('.row.name :input').val(linkAtts.title);
+			if (linkAtts.target == '_blank') {
+				linkDlgTarget.find('.row.target :checkbox').attr('checked', 'checked');
+			} else {
+				linkDlgTarget.find('.row.target :checkbox').removeAttr('checked');
+			}
+
+			linkDlgTarget = null;
+			tinyMCEPopup = oldTinyMCEpopup;
+			wpActiveEditor = oldActiveEditor;
+
+			wpLink.textarea = $();  // a focus will scroll us confusingly...
+			wpLink.close();
+		}).on('click', '#wp-link-cancel', function(event) {
+			linkDlgTarget = null;
+			tinyMCEPopup = oldTinyMCEpopup;
+			wpActiveEditor = oldActiveEditor;
+		});
 	}
 
 })(jQuery);
