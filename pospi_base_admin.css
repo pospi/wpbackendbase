@@ -158,6 +158,14 @@ li.token-input-token.img .token-input-delete-token {
 	width: 150px;
 	height: 150px;
 }
+.formio div.drag-drop-area li .details {
+	font-weight: bold;
+	padding: 0.5em;
+}
+.formio div.drag-drop-area li .details a {
+	font-weight: normal;
+	color: #21759B;
+}
 .formio div.drag-drop-area li:hover .img-controls {
 	bottom: 0;
 }

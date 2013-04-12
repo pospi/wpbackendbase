@@ -2,6 +2,13 @@
 /**
  * Input class for displaying a wordpress plUpload media handler
  *
+ * :TODO: clean up attachments which were inserted and removed without being retained
+ * :TODO: allow for inserting existing attachments from the media library
+ *
+ * custom attributes:
+ * 	- max_attachments	Sets max number of files accepted by this input
+ * 	- allowed_type		Sets allowed filetypes for upload, based on MIME type. This pattern will be matched to the start of the file's mime. Use '*' to allow anything.
+ *
  * @package wpBackendBase
  * @author Sam Pospischil <pospi@spadgos.com>
  */
@@ -12,7 +19,7 @@ class FormIOField_Richupload extends FormIOField_Text
 
 	const AJAX_HOOK_NAME = 'wp_ajax_pbase_upload_input_handle';		// bind to to FormIOField_Richupload::__uploadHandler
 
-	public $buildString = '<div class="row richupload{$alt? alt}{$classes? $classes}" data-fio-type="plupload" id="{$id}" data-metabox="{$metabox}" data-field="{$name}" data-posttype="{$posttype}"{$force_delete? data-force-delete="1"}>
+	public $buildString = '<div class="row richupload{$alt? alt}{$classes? $classes}" data-fio-type="plupload" id="{$id}" data-metabox="{$metabox}" data-field="{$name}" data-posttype="{$posttype}">
 		{$uploader_init?<script type="text/javascript">var pbase_plupload_config = $uploader_init;</script>}
 		<label for="{$id}">{$desc}{$required? <span class="required">*</span>}</label>
 		<div class="plupload-upload-ui" class="hide-if-no-js" id="{$id}-container"{$max_attachments? data-max-uploads="$max_attachments"}>
@@ -38,6 +45,20 @@ class FormIOField_Richupload extends FormIOField_Text
 		<div class="img-controls"><a href="%3$s">Edit</a><a href="#" class="img-del">&times;</a></div>
 	</li>';
 
+	protected $fileBuildString = '<li>
+		<input type="hidden" name="%4$s[]" value="%1$d" />
+		<div class="details"><a href="%6$s">%2$s</a><br />[%5$s]</div>
+		<div class="img-controls"><a href="%3$s">Edit</a><a href="#" class="img-del">&times;</a></div>
+	</li>';
+
+	public function __construct($form, $name, $displayText = null, $defaultValue = null)
+	{
+		parent::__construct($form, $name, $displayText, $defaultValue);
+
+		// default to only accepting images for upload
+		$this->setAttribute('allowed_type', 'image');
+	}
+
 	protected function getBuilderVars()
 	{
 		$vars = parent::getBuilderVars();
@@ -56,18 +77,22 @@ class FormIOField_Richupload extends FormIOField_Text
 		$images = array();
 
 		foreach ($val as $img) {
-			$images[] = $this->getImageCellHTML($img);
+			$images[] = $this->getFileCellHTML($img);
 		}
 
 		return implode("\n", $images);
 	}
 
-	protected function getImageCellHTML($img)
+	protected function getFileCellHTML($img)
 	{
 		if (is_scalar($img)) {
 			$img = get_post($img);
 		}
-		return sprintf($this->imageBuildString, $img->ID, wp_get_attachment_thumb_url($img->ID), AdminMenu::getEditUrl($img), $this->getName());
+		$mime = explode('/', $img->post_mime_type, 2);
+		if ($mime[0] == 'image') {
+			return sprintf($this->imageBuildString, $img->ID, wp_get_attachment_thumb_url($img->ID), AdminMenu::getEditUrl($img), $this->getName());
+		}
+		return sprintf($this->fileBuildString, $img->ID, basename(wp_get_attachment_url($img->ID)), AdminMenu::getEditUrl($img), $this->getName(), $img->post_mime_type, wp_get_attachment_url($img->ID));
 	}
 
 	protected static function getDefaultUploaderParams()
@@ -141,6 +166,17 @@ class FormIOField_Richupload extends FormIOField_Text
 
 		check_admin_referer("pbase-upload-images_" . $field->getFieldId());
 
+		header('Content-Type: application/json');
+
+		// check MIME type of the upload
+		$allowed = $field->getAttribute('allowed_type');
+		if ($allowed && $allowed != '*' && !preg_match('@^' . $allowed . '@', $_FILES['async-upload']['type'])) {
+			echo json_encode(array(
+				'error' => 'Filetype not permitted',
+			));
+			exit;
+		}
+
 		// run the upload process to handle the sent file
 		$file       = $_FILES['async-upload'];
 		$file_attr  = wp_handle_upload( $file, array( 'test_form' => false ) );
@@ -157,7 +193,9 @@ class FormIOField_Richupload extends FormIOField_Text
 		{
 			wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file_attr['file'] ) );
 
-			echo $field->getImageCellHTML($id);
+			echo json_encode(array(
+				'html' => $field->getFileCellHTML($id),
+			));
 		} else {
 			echo 0;
 		}

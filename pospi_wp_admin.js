@@ -237,8 +237,7 @@
 			form: el.data('metabox'),
 			field: el.data('field'),
 			post_id : $('#post_ID').val(),
-			_wpnonce: nonce,
-			force_delete: el.data('force-delete') || 0	// special attribute to control image removal behaviour (unassign vs delete)
+			_wpnonce: nonce
 		};
 
 		// Create new uploader
@@ -308,7 +307,14 @@
 			return;
 		}
 
-		$('li#' + file.id).replaceWith(response.response);
+		response = JSON.parse(response.response);
+
+		if (response.error) {
+			handleUploadError(file, response.error);
+			return;
+		}
+
+		$('li#' + file.id).replaceWith(response.html);
 	}
 
 	function createUploadLoader(up, file)
@@ -321,7 +327,7 @@
 	function handleUploadError(file, msg)
 	{
 		$('li#' + file.id)
-			.removeClass('loading').addClass('error').html(msg)
+			.removeClass('loading').addClass('error').html('<div class="details">'+msg+'</div>')
 			.delay(1600)
 			.fadeOut('slow', function() {
 				$(this).remove();
