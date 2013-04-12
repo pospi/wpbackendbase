@@ -42,13 +42,13 @@ class FormIOField_Richupload extends FormIOField_Text
 	protected $imageBuildString = '<li>
 		<input type="hidden" name="%4$s[]" value="%1$d" />
 		<img src="%2$s" />
-		<div class="img-controls"><a href="%3$s">Edit</a><a href="#" class="img-del">&times;</a></div>
+		<div class="img-controls"><a href="%3$s" target="_blank">Edit</a><a href="#" class="img-del">&times;</a></div>
 	</li>';
 
 	protected $fileBuildString = '<li>
 		<input type="hidden" name="%4$s[]" value="%1$d" />
 		<div class="details"><a href="%6$s">%2$s</a><br />[%5$s]</div>
-		<div class="img-controls"><a href="%3$s">Edit</a><a href="#" class="img-del">&times;</a></div>
+		<div class="img-controls"><a href="%3$s" target="_blank">Edit</a><a href="#" class="img-del">&times;</a></div>
 	</li>';
 
 	public function __construct($form, $name, $displayText = null, $defaultValue = null)
