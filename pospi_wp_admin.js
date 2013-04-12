@@ -285,7 +285,7 @@
 		plupload.each(files, function(file) {
 			createUploadLoader(up, file);
 			if (file.size >= max) {
-				handleUploadError(file, 'File too large');
+				handleUploadError(up, file, 'File too large');
 			}
 		});
 
@@ -303,14 +303,14 @@
 	function handleUploadComplete(up, file, response)
 	{
 		if (!response.response || response.status != 200) {
-			handleUploadError(file, 'Error processing upload');
+			handleUploadError(up, file, 'Error processing upload');
 			return;
 		}
 
 		response = JSON.parse(response.response);
 
 		if (response.error) {
-			handleUploadError(file, response.error);
+			handleUploadError(up, file, response.error);
 			return;
 		}
 
@@ -324,8 +324,11 @@
 		uploadList.append( "<li id=\"" + file.id + "\" class=\"loading\"><div class='progress-bar'>Uploading (<span>0%</span>)</div></li>" );
 	}
 
-	function handleUploadError(file, msg)
+	function handleUploadError(up, file, msg)
 	{
+		var uploadContainer = $('#' + up.settings.container);
+		uploadContainer.find('.drag-drop-inside').show();	// we can assume an error means the ability to upload has been restored
+
 		$('li#' + file.id)
 			.removeClass('loading').addClass('error').html('<div class="details">'+msg+'</div>')
 			.delay(1600)

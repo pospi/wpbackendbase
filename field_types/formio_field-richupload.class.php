@@ -74,6 +74,9 @@ class FormIOField_Richupload extends FormIOField_Text
 	protected function getLoadedImagesHTML()
 	{
 		$val = $this->getValue();
+		if (!$val) {
+			return '';
+		}
 		$images = array();
 
 		foreach ($val as $img) {
