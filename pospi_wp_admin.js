@@ -253,7 +253,12 @@
 		});
 
 		// bind an event to manage removals
-
+		el.on('click', '.img-del', function(e) {
+			e.preventDefault();
+			$(this).closest('li').fadeOut('slow', function() {
+				$(this).remove();
+			});
+		});
 	}
 
 	// remainder logic heavily inspired by metabox plugin: http://wordpress.org/extend/plugins/meta-box/

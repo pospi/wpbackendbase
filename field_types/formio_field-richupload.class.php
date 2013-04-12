@@ -4,6 +4,7 @@
  *
  * :TODO: clean up attachments which were inserted and removed without being retained
  * :TODO: allow for inserting existing attachments from the media library
+ * :TODO: provide a parameter to choose whether removing images means deleting them or just unassigning them
  *
  * custom attributes:
  * 	- max_attachments	Sets max number of files accepted by this input
