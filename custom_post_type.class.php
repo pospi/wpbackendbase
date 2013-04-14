@@ -899,9 +899,12 @@ class Custom_Post_Type
 			// bring in the subset of data relevant to this metabox section
 			$inputHandler->importData($indexedMetaFields, true);
 
+			// read back pre-validated data in case of an error
+			$prevalidationData = $inputHandler->getData();
+
 			if (!$skipValidation && !$inputHandler->validate()) {
 				// store the form's errors so that we can pull them back after the redirect
-				$this->logErrors($postId, $title, $inputHandler->getErrors());
+				$this->logErrors($postId, $title, $inputHandler->getErrors(), $prevalidationData);
 				continue;
 			}
 
@@ -1017,14 +1020,17 @@ class Custom_Post_Type
 		$errors = $this->getErrors($post->ID, true);
 
 		// if there was no error in last submission, we are done
-		if (!$errors || !isset($errors[$boxName])) {
+		if (!$errors || !isset($errors[$metaBoxId])) {
 			return $this->formHandlers[$metaBoxId]->getFieldsHTML();
 		}
 
 		// load the errors from session back into the form
 		$handler = $this->formHandlers[$metaBoxId];
-		foreach ($errors[$boxName] as $error => $errorDetails) {
+		foreach ($errors[$metaBoxId]['errors'] as $error => $errorDetails) {
 			$handler->addError($error, $errorDetails);
+		}
+		foreach ($errors[$metaBoxId]['data'] as $field => $badValue) {
+			$handler[$field] = $badValue;
 		}
 
 		return $handler->getFieldsHTML();
@@ -1302,7 +1308,7 @@ class Custom_Post_Type
 
 		foreach ($errors as $metabox => $formErrs) {
 			$boxErrorStr = sprintf( __('%d error(s) saving \'%s\' data. Please <a href="#%s">review</a> this section.'),
-								count($formErrs), $metabox, self::get_field_id_name($metabox)
+								count($formErrs['errors']), $metabox, self::get_field_id_name($metabox)
 							);
 			echo '<div class="error"><p>' . $boxErrorStr . '</p></div>';
 		}
@@ -1318,11 +1324,14 @@ class Custom_Post_Type
 		}
 	}
 
-	public function logErrors($postId, $metabox, $errors)
+	public function logErrors($postId, $metabox, $errors, $invalidData = array())
 	{
 		$existing = $this->getErrors($postId);
 
-		$existing[$metabox] = $errors;
+		$existing[$metabox] = array(
+			'errors' => $errors,
+			'data' => $invalidData,
+		);
 
 		return update_option(self::getErrorOptionName($postId), $existing);
 	}
