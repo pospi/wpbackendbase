@@ -149,6 +149,7 @@ class FormIOField_Richupload extends FormIOField_Text
 		// load args
 		$formId = isset($_POST['form']) ? $_POST['form'] : null;
 		$fieldKey = isset($_POST['field']) ? $_POST['field'] : null;
+		$postId = isset($_POST['post_id']) ? $_POST['post_id'] : null;
 
 		// load post type class & ensure form inputs have been setup
 		$postType = isset($_POST['pt']) ? $_POST['pt'] : 'post';
@@ -191,7 +192,7 @@ class FormIOField_Richupload extends FormIOField_Text
 			'post_content'   => '',
 			'post_status'    => 'inherit',
 		);
-		$id = wp_insert_attachment( $attachment, $file_attr['file'], $post_id );
+		$id = wp_insert_attachment( $attachment, $file_attr['file'], $postId );
 
 		if ( ! is_wp_error( $id ) )
 		{
