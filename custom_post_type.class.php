@@ -1026,8 +1026,8 @@ class Custom_Post_Type
 
 		// load the errors from session back into the form
 		$handler = $this->formHandlers[$metaBoxId];
-		foreach ($errors[$metaBoxId]['errors'] as $error => $errorDetails) {
-			$handler->addError($error, $errorDetails);
+		foreach ($errors[$metaBoxId]['errors'] as $field => $errorDetails) {
+			$handler->addError($field, $errorDetails);
 		}
 		foreach ($errors[$metaBoxId]['data'] as $field => $badValue) {
 			$handler[$field] = $badValue;
