@@ -90,6 +90,9 @@ class Custom_Post_Type
 		// Listen for the save post hook
 		$this->save();
 
+		// listen for any errors we might encounter
+		add_action('admin_notices', array($this, 'showErrorNotifications'));
+
 		// store ourselves in the loaded post types register so we can be retrieved again
 		self::$postTypeRegister[$this->post_type_name] = $this;
 	}
@@ -174,9 +177,9 @@ class Custom_Post_Type
 		}
 	}
 
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// data configuration
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	/* Method to attach the taxonomy to the post type */
 	public function add_taxonomy( $name, $args = array(), $labels = array() )
@@ -387,17 +390,6 @@ class Custom_Post_Type
 			}
 
 			$this->raw_add_meta_box($box_id, $box_title, $post_type_name, $metaboxDrawCb, $box_context, $box_priority, $fields, $cbArgs);
-
-			// also register a callback to show any custom metabox submission errors present
-			if (isset($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE][$box_id])) {
-				add_action('admin_notices', function () use ($that, $box_id, $box_title) {
-					$boxErrorStr = sprintf( __('%d error(s) saving \'%s\' data. Please <a href="#%s">review</a> this section.'),
-										count($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE][$box_id]), $box_title, $box_id
-									);
-
-					echo '<div class="error"><p>' . $boxErrorStr . '</p></div>';
-				});
-			}
 		}
 	}
 
@@ -450,17 +442,6 @@ class Custom_Post_Type
 					return call_user_func($box_cb, $submittedData, $attach);
 				}
 			}, 10, 2);
-		}
-
-		// also register a callback to show any custom metabox submission errors present
-		if (isset($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE][$box_id])) {
-			add_action('admin_notices', function () use ($box_id, $box_title) {
-				$boxErrorStr = sprintf( __('%d error(s) saving \'%s\' data. Please <a href="#%s">review</a> this section.'),
-									count($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE][$box_id]), $box_title, $box_id
-								);
-
-				echo '<div class="error"><p>' . $boxErrorStr . '</p></div>';
-			});
 		}
 	}
 
@@ -577,9 +558,9 @@ class Custom_Post_Type
 		$this->statusTransitions[$oldStatus][$newStatus][] = $callback;
 	}
 
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// post data handling
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	/* Listens for when the post type being saved */
 	public function save()
@@ -617,7 +598,7 @@ class Custom_Post_Type
 
 				// clear validation errors when creating users - they aren't supposed to be valid yet!
 				if ($creatingUser && $thisPt == 'user') {
-					unset($_SESSION[Custom_Post_Type::ERROR_SESSION_STORAGE]);
+					$this->purgeErrors($postId);
 				}
 			}
 
@@ -919,12 +900,8 @@ class Custom_Post_Type
 			$inputHandler->importData($indexedMetaFields, true);
 
 			if (!$skipValidation && !$inputHandler->validate()) {
-				$that = $this;
-				// store the form's errors in session so that we can pull them back after the redirect
-				if (!isset($_SESSION[self::ERROR_SESSION_STORAGE])) {
-					$_SESSION[self::ERROR_SESSION_STORAGE] = array();
-				}
-				$_SESSION[self::ERROR_SESSION_STORAGE][self::get_field_id_name($title)] = $inputHandler->getErrors();
+				// store the form's errors so that we can pull them back after the redirect
+				$this->logErrors($postId, $title, $inputHandler->getErrors());
 				continue;
 			}
 
@@ -993,9 +970,9 @@ class Custom_Post_Type
 		}
 	}
 
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// post type interface accessors
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	public function get_post_meta_fields()
 	{
@@ -1025,9 +1002,9 @@ class Custom_Post_Type
 		return get_terms($taxonomy, array('hide_empty' => 0));
 	}
 
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// save submission handling
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	public function get_metabox_form_output($boxName, Array $meta = null, $post = null)
 	{
@@ -1037,19 +1014,18 @@ class Custom_Post_Type
 			$this->init_form_handlers($meta, $post);
 		}
 
+		$errors = $this->getErrors($post->ID, true);
+
 		// if there was no error in last submission, we are done
-		if (!isset($_SESSION[self::ERROR_SESSION_STORAGE][$metaBoxId])) {
+		if (!$errors || !isset($errors[$boxName])) {
 			return $this->formHandlers[$metaBoxId]->getFieldsHTML();
 		}
 
 		// load the errors from session back into the form
 		$handler = $this->formHandlers[$metaBoxId];
-		foreach ($_SESSION[self::ERROR_SESSION_STORAGE][$metaBoxId] as $error => $errorDetails) {
+		foreach ($errors[$boxName] as $error => $errorDetails) {
 			$handler->addError($error, $errorDetails);
 		}
-
-		// we're now done with this form's errors, so clear them out
-		unset($_SESSION[self::ERROR_SESSION_STORAGE][$metaBoxId]);
 
 		return $handler->getFieldsHTML();
 	}
@@ -1305,9 +1281,86 @@ class Custom_Post_Type
 		}
 	}
 
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	// Error handling & invalid state persistence
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	private $handledPostErrors = array();
+
+	public function showErrorNotifications()
+	{
+		global $post;
+		if (!$post || $post->post_type != $this->post_type_name) {
+			return;
+		}
+
+		$errors = $this->getErrors($post->ID);
+
+		if (!$errors) {
+			return;
+		}
+
+		foreach ($errors as $metabox => $formErrs) {
+			$boxErrorStr = sprintf( __('%d error(s) saving \'%s\' data. Please <a href="#%s">review</a> this section.'),
+								count($formErrs), $metabox, self::get_field_id_name($metabox)
+							);
+			echo '<div class="error"><p>' . $boxErrorStr . '</p></div>';
+		}
+
+		$this->handledPostErrors[] = $post->ID;
+		add_action('shutdown', array($this, 'purgePostErrors'));
+	}
+
+	public function purgePostErrors()
+	{
+		foreach ($this->handledPostErrors as $postId) {
+			$this->purgeErrors($postId);
+		}
+	}
+
+	public function logErrors($postId, $metabox, $errors)
+	{
+		$existing = $this->getErrors($postId);
+
+		$existing[$metabox] = $errors;
+
+		return update_option(self::getErrorOptionName($postId), $existing);
+	}
+
+	protected function purgeErrors($postId)
+	{
+		return delete_option(self::getErrorOptionName($postId));
+	}
+
+	public function getErrors($postId, $indexByMetaboxIds = false)
+	{
+		$errs = get_option(self::getErrorOptionName($postId));
+		if ($errs === false) {
+			$errs = array();
+		}
+
+		if (!$indexByMetaboxIds) {
+			return $errs;
+		}
+
+		$idErrs = array();
+		foreach ($errs as $k => $v) {
+			$idErrs[self::get_field_id_name($k)] = $v;
+		}
+		return $idErrs;
+	}
+
+	private static function getErrorOptionName($postId)
+	{
+		global $current_user;
+		get_currentuserinfo();
+
+		return "pbe_{$current_user->ID}_{$postId}";
+	}
+
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	// name / ID conversion helpers
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	public function get_friendly_name($plural = false)
 	{
@@ -1353,9 +1406,9 @@ class Custom_Post_Type
 		return ucwords( str_replace( '_', ' ', $label ) );
 	}
 
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	//	accessor to read post type objects created via this interface
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	public static function get_post_type($name)
 	{
@@ -1369,9 +1422,9 @@ class Custom_Post_Type
 		return null;
 	}
 
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	//	Compatibility layer
-	//---------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	private static $LEGACY_ATTACHMENT_EDITOR;
 
