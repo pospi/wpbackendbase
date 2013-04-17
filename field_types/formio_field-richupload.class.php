@@ -9,6 +9,7 @@
  * custom attributes:
  * 	- max_attachments	Sets max number of files accepted by this input
  * 	- allowed_type		Sets allowed filetypes for upload, based on MIME type. This pattern will be matched to the start of the file's mime. Use '*' to allow anything.
+ * 	- assign_on_save	If true, prevents the image actually being attached to the post's metadata until the post itself is updated. Otherwise it will be attached on upload.
  *
  * @package wpBackendBase
  * @author Sam Pospischil <pospi@spadgos.com>
@@ -197,6 +198,17 @@ class FormIOField_Richupload extends FormIOField_Text
 		if ( ! is_wp_error( $id ) )
 		{
 			wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file_attr['file'] ) );
+
+			// assign it back to the post's meta immediately if we are configured to do so
+			if (!$field->getAttribute('assign_on_save')) {
+				$fieldKey = preg_replace('/^' . Custom_Post_Type::META_POST_KEY . '\[(.*)\]$/', '$1', $fieldKey);
+				$existing = get_post_meta($postId, $fieldKey, true);
+				if (!$existing) {
+					$existing = array();
+				}
+				$existing[] = $id;
+				update_post_meta($postId, $fieldKey, array_unique($existing));
+			}
 
 			echo json_encode(array(
 				'html' => $field->getFileCellHTML($id),
