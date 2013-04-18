@@ -579,8 +579,8 @@ class Custom_Post_Type
 			// determine the type of posts, since we want to be able to target similar objects as posts...
 			$thisPt = get_post_type($postId);
 			$creatingUser = false;
+			$post = get_post($postId);
 			if ($thisPt == 'revision' || $thisPt == 'attachment') {
-				$post = get_post($postId);
 				$creatingUser = $thisPt == 'revision';		// :NOTE: users are created with attached posts. 'revision' means the user is new, 'attachment' means they are being updated.
 				$thisPt = get_post_type($post->post_parent);
 			}
@@ -594,7 +594,10 @@ class Custom_Post_Type
 			if ( isset($_POST[Custom_Post_Type::NONCE_FIELD_NAME]) && ! wp_verify_nonce( $_POST[Custom_Post_Type::NONCE_FIELD_NAME], plugin_basename(__FILE__) ) ) return;
 
 			if( $postId && $thisPt == $post_type_name ) {
-				$that->update_post_meta($postId, isset($_POST[Custom_Post_Type::META_POST_KEY]) ? $_POST[Custom_Post_Type::META_POST_KEY] : array(), !isset($_POST[Custom_Post_Type::META_POST_KEY]));
+				// skip validation if the data is not coming from the frontend, or the post is in a draft state
+				$skipValidation = !isset($_POST[Custom_Post_Type::META_POST_KEY]) || ($post && in_array($post->post_status, array('draft', 'new', 'auto-draft', 'trash')));
+
+				$that->update_post_meta($postId, isset($_POST[Custom_Post_Type::META_POST_KEY]) ? $_POST[Custom_Post_Type::META_POST_KEY] : array(), $skipValidation);
 
 				// clear validation errors when creating users - they aren't supposed to be valid yet!
 				if ($creatingUser && $thisPt == 'user') {

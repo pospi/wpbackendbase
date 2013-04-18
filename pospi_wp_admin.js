@@ -96,8 +96,13 @@
 
 	// override the form field submit action to indicate an error in the WP UI instead of failing the submission silently
 	var oldOnSubmit = FormIO.prototype.onSubmit;
-	FormIO.prototype.onSubmit = function()
+	FormIO.prototype.onSubmit = function(e)
 	{
+		// ignore validation if draft
+		if (SUBMIT_BTN == 'save-post') {
+			return;
+		}
+
 		var ok = oldOnSubmit.call(this);
 
 		// remove notifications from previous run
@@ -107,6 +112,7 @@
 			// reset the WP UI to its pre-submission state
 			$('#publish').removeClass('button-primary-disabled');
 			$('#save-post').removeClass('button-disabled');
+			$('#publishing-action .spinner').hide();
 			$('#ajax-loading').hide();
 
 			// add notifications of errors
@@ -383,6 +389,8 @@
 	// DOM load
 	//--------------------------------------------------------------------------
 
+	var SUBMIT_BTN = null;	// button used to submit post page forms
+
 	$(function() {
 		// find our metaboxs
 		var metaboxes = $('input[name=custom_post_type]').parent();
@@ -391,7 +399,15 @@
 		$('li.img.token-input-token').closest('token-input-list').addClass('img');
 
 		if (metaboxes.get(0)) {
+			// bind formIO behaviours to post box elements
 			initPostBoxes(metaboxes);
+
+			// load the clicked button when saving a post
+			function setSubmitter(e) {
+				SUBMIT_BTN = $(this).attr('id');
+			}
+			$('#save-post').on('mousedown', setSubmitter);
+			$('#publish').on('mousedown', setSubmitter);
 		}
 
 		// load parallax preview of image attachments
