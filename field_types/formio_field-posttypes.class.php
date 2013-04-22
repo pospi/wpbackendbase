@@ -37,6 +37,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 	protected static $DEFAULT_QUERY_ARGS = array(
 		'posts_per_page' => -1,
 		'orderby' => 'title',
+		'order' => 'ASC',
 	);
 
 	protected $optionNum = 0;		// internal counter for associating options with post results by index
