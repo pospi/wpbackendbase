@@ -6,7 +6,7 @@ class FormIOField_External_link extends FormIOField_Group
 	{
 		parent::__construct($form, $name, $displayText, $defaultValue);
 
-		$this->setAttribute('classes', 'external-link');
+		$this->setAttribute('classes', 'external-link blck');
 
 		$f = $this->createSubField('text', 'name', 'Link name');
 		$f->setAttribute('classes', 'name');
