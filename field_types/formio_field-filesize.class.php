@@ -43,7 +43,7 @@ class FormIOField_Filesize extends FormIOField_Readonly
 		$inputVars = parent::getBuilderVars();
 
 		$inputVars['value'] = self::formatBytes($this->value);
-		$inputVars['escapedvalue'] = htmlentities($this->value);
+		$inputVars['escapedvalue'] = $this->_attr($this->value);
 
 		return $inputVars;
 	}
