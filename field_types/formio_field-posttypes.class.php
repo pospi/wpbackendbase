@@ -261,7 +261,7 @@ class FormIOField_Posttypes extends FormIOField_Autocomplete
 	protected function handleSearchInput($str)
 	{
 		$words = preg_split('/\s+/', trim($str));
-		if (!$str || !$words) {
+		if (!$str || !$words || (count($words) == 1 && $words[0] == '*')) {
 			return array();
 		}
 
