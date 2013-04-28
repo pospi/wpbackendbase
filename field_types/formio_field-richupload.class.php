@@ -186,6 +186,14 @@ class FormIOField_Richupload extends FormIOField_Text
 		// run the upload process to handle the sent file
 		$file       = $_FILES['async-upload'];
 		$file_attr  = wp_handle_upload( $file, array( 'test_form' => false ) );
+
+		// file was rejected internally by Wordpress, abort
+		if (!empty($file_attr['error'])) {
+			echo json_encode($file_attr);
+			exit;
+		}
+
+		// create an attachment post to bind the file to
 		$attachment = array(
 			'guid'           => $file_attr['url'],
 			'post_mime_type' => $file_attr['type'],
