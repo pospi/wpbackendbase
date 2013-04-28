@@ -150,7 +150,7 @@ class FormIOField_Richupload extends FormIOField_Text
 		// load args
 		$formId = isset($_POST['form']) ? $_POST['form'] : null;
 		$fieldKey = isset($_POST['field']) ? $_POST['field'] : null;
-		$postId = isset($_POST['post_id']) ? $_POST['post_id'] : null;
+		$postId = isset($_POST['post_ID']) ? $_POST['post_ID'] : null;
 
 		// load post type class & ensure form inputs have been setup
 		$postType = isset($_POST['pt']) ? $_POST['pt'] : 'post';

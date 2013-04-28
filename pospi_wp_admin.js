@@ -213,7 +213,7 @@
 			pt: el.data('posttype'),
 			form: el.data('metabox'),
 			field: el.data('field'),
-			post_id : $('#post_ID').val(),
+			post_ID : $('#post_ID').val(),
 			_wpnonce: nonce
 		};
 
