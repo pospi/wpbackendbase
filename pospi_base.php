@@ -76,6 +76,7 @@ add_action('admin_enqueue_scripts',function(){
 	// core WP script includes
 	wp_enqueue_script('plupload-all');
 	wp_enqueue_script('wp-link');
+	wp_enqueue_script('thickbox');
 
 	// begin custom script jQuery sandbox
 	wp_register_script('jqnc-pospi-pre', plugins_url('jquery.noconflict.pre.js', __FILE__), $coreJqueryScripts, null, false);
@@ -113,6 +114,8 @@ add_action('admin_enqueue_scripts',function(){
 // Custom Css
 add_action( 'admin_init', function() {
 	$scheme = is_ssl() ? 'https://' : 'http://';
+
+	wp_enqueue_style('thickbox');
 
 	wp_register_style('jquery-ui-base', "{$scheme}ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/base/jquery-ui.css");
 	wp_enqueue_style('jquery-ui-base');

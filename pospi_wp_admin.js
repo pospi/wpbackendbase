@@ -200,7 +200,9 @@
 		// override uploader defaults for this particular field
 		var uploader,
 			uploaderId = el.attr('id'),
+			galleryLink = $('.pb-media-gallery', el),
 			nonce = $( '#nonce-upload-images_' + uploaderId ).val(),
+			postId = $('#post_ID').val(),
 			uploaderConfig = $.extend({}, pbase_plupload_config, {
 				container    : uploaderId + '-container',
 				browse_button: uploaderId + '-browse-button',
@@ -213,7 +215,7 @@
 			pt: el.data('posttype'),
 			form: el.data('metabox'),
 			field: el.data('field'),
-			post_ID : $('#post_ID').val(),
+			post_ID : postId,
 			_wpnonce: nonce
 		};
 
@@ -235,6 +237,13 @@
 			$(this).closest('li').fadeOut('slow', function() {
 				$(this).remove();
 			});
+		});
+
+		// set post ID into gallery popup button
+		galleryLink.attr('href', galleryLink.attr('href') + '&post_id=' + postId);
+		// flag the active input for ThickBox so it can populate the appropriate field upon returning
+		galleryLink.on('click', function() {
+			$(this).addClass('active-gallery-uploader');
 		});
 	}
 
@@ -326,6 +335,36 @@
 				$(this).remove();
 			});
 	}
+
+	// handler for use by media library when selecting from there
+	window.PB_handle_media_selection = function(attachmentID, attachData)
+	{
+		// close the uploader box first, we're done
+		tb_remove();
+
+		// render a new item to the active list
+		var uploaderEl = $('.pb-media-gallery.active-gallery-uploader').closest('.row.richupload'),
+			inputName = uploaderEl.data('field'),
+			storedItemList = uploaderEl.find('ul.uploaded-images'),
+			newItemHTML;
+
+		// @see FormIOField_Richupload::$imageBuildString and FormIOField_Richupload::$fileBuildString
+		if (attachData.is_image) {
+			newItemHTML = '<li>' +
+				'<input type="hidden" name="' + inputName + '[]" value="' + attachmentID + '" />' +
+				'<img src="' + attachData.url + '" />' +
+				'<div class="img-controls"><a href="' + attachData.edit_url + '" target="_blank">Edit</a><a href="#" class="img-del">&times;</a></div>' +
+			'</li>';
+		} else {
+			newItemHTML = '<li>' +
+				'<input type="hidden" name="' + inputName + '[]" value="' + attachmentID + '" />' +
+				'<div class="details"><a href="' + attachData.url + '">' + attachData.filename + '</a><br />[' + attachData.mimetype + ']</div>' +
+				'<div class="img-controls"><a href="' + attachData.edit_url + '" target="_blank">Edit</a><a href="#" class="img-del">&times;</a></div>' +
+			'</li>';
+		}
+
+		storedItemList.append(newItemHTML);
+	};
 
 	//--------------------------------------------------------------------------
 	// totally shonky binding for Wordpress link manager

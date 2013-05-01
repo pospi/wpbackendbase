@@ -136,7 +136,7 @@ li.token-input-token.img .token-input-delete-token {
 }
 .formio div.drag-drop-inside {
 	margin: 40px auto;
-	width: 250px;
+	width: 100%;
 }
 .formio div.drag-drop-inside p {
 	color: #AAAAAA;
@@ -204,6 +204,10 @@ li.token-input-token.img .token-input-delete-token {
 .formio div.drag-drop-area li.error {
 	background: #E88;
 	line-height: 1.2em;
+}
+.formio p.drag-drop-buttons a {
+	font-weight: bold;
+	font-size: 1.1em;
 }
 
 /* named link input with helper popup */

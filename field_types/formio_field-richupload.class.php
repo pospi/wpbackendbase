@@ -3,8 +3,9 @@
  * Input class for displaying a wordpress plUpload media handler
  *
  * :TODO: clean up attachments which were inserted and removed without being retained
- * :TODO: allow for inserting existing attachments from the media library
+ * :TODO: use WP 3.5+ media library handler where available for selecting from gallery
  * :TODO: provide a parameter to choose whether removing images means deleting them or just unassigning them
+ * :TODO: resolve discrepancy where uploading assigns images instantly and choosing from library requires a save action on the parent post
  *
  * custom attributes:
  * 	- max_attachments	Sets max number of files accepted by this input
@@ -30,9 +31,12 @@ class FormIOField_Richupload extends FormIOField_Text
 					{$uploaded}
 				</ul>
 				<div class="drag-drop-inside">
-					<p class="drag-drop-info">Drop files here</p>
+					<p class="drag-drop-info">Drop files here{$max_attachments? ($max_attachments files max)}</p>
 					<p>- or -</p>
-					<p class="drag-drop-buttons"><input id="{$id}-browse-button" type="button" value="Select Files" class="button" /></p>
+					<p class="drag-drop-buttons">
+						<input id="{$id}-browse-button" type="button" value="Upload files" class="button" />
+						<a id="{$id}-library-button" class="pb-media-gallery button thickbox" href="{$gallery_url}">Choose from library</a>
+					</p>
 				</div>
 				{$nonce}
 			</div>
@@ -69,6 +73,8 @@ class FormIOField_Richupload extends FormIOField_Text
 		$vars['uploader_init'] = self::getDefaultUploaderParams();
 		$vars['uploaded'] = $this->getLoadedImagesHTML();
 		$vars['nonce'] = wp_nonce_field("pbase-upload-images_" . $this->getFieldId(), "nonce-upload-images_" . $this->getFieldId(), false, false);
+
+		$vars['gallery_url'] = admin_url('media-upload.php') . '?context=pospi-base-uploader&tab=library&type=' . $this->getAttribute('allowed_type') . '&TB_iframe=1';
 
 		return $vars;
 	}
@@ -144,7 +150,6 @@ class FormIOField_Richupload extends FormIOField_Text
 	//------------------------------------------------------------------------------------
 
 	// Our upload handler just sends back the image HTML, which includes a hidden ID.
-	// The image will only be associated and saved when the post is updated / published etc.
 	public static function __uploadHandler()
 	{
 		// load args
@@ -226,4 +231,87 @@ class FormIOField_Richupload extends FormIOField_Text
 		}
 		exit;
 	}
+
+	//------------------------------------------------------------------------------------
+	//	Wordpress hooks for integrating into media library
+
+	public static function bindGalleryUI()
+	{
+		if (is_admin()) {
+			add_action('admin_menu', array(get_class(), 'checkUploadContext'));
+		}
+	}
+
+	public static function checkUploadContext()
+	{
+		if (isset($_REQUEST['context']) && $_REQUEST['context'] == 'pospi-base-uploader') {
+			$cls = get_class();
+
+			add_filter('media_upload_form_url', array($cls, 'configureUploadFormAction'), 10, 2);
+			add_filter('media_upload_tabs', array($cls, 'configureLibraryTabs'), 10, 1);
+			add_filter('attachment_fields_to_edit', array($cls, 'configureLibraryButton'), 10, 2);
+			add_filter('media_send_to_editor', array($cls, 'configureLibrarySubmissionAction'), 10, 3);
+		}
+	}
+
+	// pass library context back through submission actions
+	public static function configureUploadFormAction($url, $type)
+	{
+		return add_query_arg('context', $_REQUEST['context'], $url);
+	}
+
+	// configure available sections of the library in associated popups
+	public static function configureLibraryTabs($tabs)
+	{
+		unset($tabs['type']);
+		unset($tabs['type_url']);
+		unset($tabs['gallery']);
+		return $tabs;
+	}
+
+	// change the library 'send back to parent window' button text, and remove all other editing fields from the library window
+	public static function configureLibraryButton($form_fields, $img)
+	{
+		$send = "<input type=\"submit\" class=\"button button-primary\" name=\"send[{$img->ID}]\" value=\"" . esc_attr__( 'Select File' ) . "\" />";
+
+		$mime = explode('/', $img->post_mime_type, 2);
+		$isImage = $mime[0] == 'image';
+
+		if ($isImage) {
+			$displayUrl = wp_get_attachment_thumb_url($img->ID);
+		} else {
+			$displayUrl = wp_get_attachment_url($img->ID);
+		}
+		$editUrl = AdminMenu::getEditUrl($img);
+		$filename = basename(wp_get_attachment_url($img->ID));
+		$fullMime = $img->post_mime_type;
+
+		return array(
+			// override button HTML
+			'buttons' => array('tr' => "\t\t<tr class='submit'><td></td><td class='savesend'>$send</td></tr>\n"),
+
+			// send additional data back needed to render the image into the control in the parent window
+			'is_image' => array('input' => 'hidden', 'value' => $isImage ? 1 : 0),
+			'url' => array('input' => 'hidden', 'value' => $displayUrl),
+			'edit_url' => array('input' => 'hidden', 'value' => $editUrl),
+			'filename' => array('input' => 'hidden', 'value' => $filename),
+			'mimetype' => array('input' => 'hidden', 'value' => $fullMime),
+		);
+	}
+
+	// change the JS logic run when selecting items from the media library
+	public static function configureLibrarySubmissionAction($html, $send_id, $attachment)
+	{
+		$attachment = json_encode($attachment);	// :NOTE: this is the data from configureLibraryButton() hidden inputs
+		?>
+			<script type="text/javascript">
+				var win = window.dialogArguments || opener || parent || top;
+
+				win.PB_handle_media_selection('<?php echo $send_id;?>', <?php echo $attachment; ?>);
+			</script>
+		<?php
+		exit();
+	}
 }
+
+FormIOField_Richupload::bindGalleryUI();
