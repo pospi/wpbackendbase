@@ -237,6 +237,7 @@
 			$(this).closest('li').fadeOut('slow', function() {
 				$(this).remove();
 			});
+			$('#' + uploaderId + '-container .drag-drop-inside').show();
 		});
 
 		// set post ID into gallery popup button
