@@ -591,7 +591,11 @@ class Custom_Post_Type
 			// If doing the wordpress autosave function, ignore...
 			if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
 
+			// abort on bad nonce
 			if ( isset($_POST[Custom_Post_Type::NONCE_FIELD_NAME]) && ! wp_verify_nonce( $_POST[Custom_Post_Type::NONCE_FIELD_NAME], plugin_basename(__FILE__) ) ) return;
+
+			// ignore quick edit actions as full metadata won't be sent with these
+			if (isset($_POST['action']) && $_POST['action'] == 'inline-save') return;
 
 			if( $postId && $thisPt == $post_type_name ) {
 				// skip validation if the data is not coming from the frontend, or the post is in a draft state
