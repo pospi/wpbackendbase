@@ -597,11 +597,11 @@ class Custom_Post_Type
 			// ignore quick edit actions as full metadata won't be sent with these
 			if (isset($_POST['action']) && $_POST['action'] == 'inline-save') return;
 
-			if( $postId && $thisPt == $post_type_name ) {
-				// skip validation if the data is not coming from the frontend, or the post is in a draft state
-				$skipValidation = !isset($_POST[Custom_Post_Type::META_POST_KEY]) || ($post && in_array($post->post_status, array('draft', 'new', 'auto-draft', 'trash')));
+			if( $postId && $thisPt == $post_type_name && isset($_POST[Custom_Post_Type::META_POST_KEY]) ) {
+				// skip validation if the post is in a draft state
+				$skipValidation = $post && in_array($post->post_status, array('draft', 'new', 'auto-draft', 'trash'));
 
-				$that->update_post_meta($postId, isset($_POST[Custom_Post_Type::META_POST_KEY]) ? $_POST[Custom_Post_Type::META_POST_KEY] : array(), $skipValidation);
+				$that->update_post_meta($postId, $_POST[Custom_Post_Type::META_POST_KEY], $skipValidation);
 
 				// clear validation errors when creating users - they aren't supposed to be valid yet!
 				if ($creatingUser && $thisPt == 'user') {
