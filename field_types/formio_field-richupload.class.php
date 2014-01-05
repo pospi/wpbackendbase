@@ -87,8 +87,10 @@ class FormIOField_Richupload extends FormIOField_Text
 		}
 		$images = array();
 
-		foreach ($val as $img) {
-			$images[] = $this->getFileCellHTML($img);
+		if ($val) {
+			foreach ((array)$val as $img) {
+				$images[] = $this->getFileCellHTML($img);
+			}
 		}
 
 		return implode("\n", $images);
